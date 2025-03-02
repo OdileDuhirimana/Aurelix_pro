@@ -17,12 +17,13 @@ const FilterChip: React.FC<FilterChipProps> = ({ label, active, onPress }) => {
 
 const styles = StyleSheet.create({
   filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 50,
+    borderWidth: 0.5,
     borderColor: "#00A86B",
     marginRight: 10,
+    height: 25,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
     borderColor: "#00a86b",
   },
   filterText: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: "Poppins-Regular",
     color: "#232327",
   },

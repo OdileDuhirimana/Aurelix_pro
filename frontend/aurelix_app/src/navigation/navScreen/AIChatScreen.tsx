@@ -10,7 +10,9 @@ import {
   StatusBar,
   FlatList,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  ImageStyle,
+  ImageBackground
 } from 'react-native';
 import { ArrowLeft, Play, Paperclip, Mic, Send } from 'lucide-react-native';
 
@@ -72,13 +74,15 @@ const VideoPlayer = ({ videoUrl, thumbnailUrl }: VideoFeedback) => {
       style={styles.videoContainer}
       onPress={handlePlayVideo}
     >
-      <Image 
+      <ImageBackground 
         source={{ uri: thumbnailUrl }} 
         style={styles.videoThumbnail}
-      />
-      <View style={styles.playButton}>
-        <Play size={24} color="#171725" fill="#ffffff" />
-      </View>
+         // For customizing the background image
+      >
+        <View style={styles.playButton}>
+          <Play size={24} color="#171725" fill="#ffffff" />
+        </View>
+      </ImageBackground>
     </TouchableOpacity>
   );
 };
@@ -262,12 +266,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     width: '60%',
-    aspectRatio: 16/9,
+    aspectRatio: 16 / 9,
     position: 'relative',
   },
   videoThumbnail: {
     width: '100%',
     height: '100%',
+    justifyContent: 'center', // Center the play button
+    alignItems: 'center', // Center the play button
   },
   playButton: {
     position: 'absolute',
@@ -350,5 +356,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 12,
+  },
+  imageStyle: {
+    borderRadius: 12, // Rounded corners for the image inside ImageBackground
   },
 });

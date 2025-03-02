@@ -8,6 +8,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
+  ScrollView,
   FlatList,
   ActivityIndicator,
   RefreshControl,
@@ -25,7 +26,7 @@ import SortPopup from "./Components/SortPopup"
 
 // Types and Services
 import type { Investor, Region, FilterOption, SortOption } from "../index"
-import { fetchInvestors, fetchRegions, fetchStats, fetchSectors, fetchSortOptions } from "./mockup/api"
+import { fetchInvestors, fetchRegions, fetchStats, fetchSectors, fetchSortOptions } from "./mockup/api_home"
 
 interface HomeScreenProps {
   navigation: any
@@ -239,20 +240,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         </View>
 
         <FlatList
-          data={investors}
-          renderItem={renderInvestorItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.investorList}
-          columnWrapperStyle={styles.investorRow}
-          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#00a86b"]} />}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No investors found</Text>
-            </View>
-          }
-        />
+  data={investors}
+  renderItem={renderInvestorItem}
+  keyExtractor={(item) => item.id}
+  numColumns={2}
+  showsVerticalScrollIndicator={false}
+  contentContainerStyle={{ ...styles.investorList, flexGrow: 1 }} // Ensure it takes available space
+  columnWrapperStyle={styles.investorRow}
+  refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#00a86b"]} />}
+  ListEmptyComponent={
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>No investors found</Text>
+    </View>
+  }
+/>
+
+
+
 
         <FilterPopup
           visible={showFilterPopup}
@@ -316,13 +320,13 @@ const styles = StyleSheet.create({
   },
   filtersContainer: {
     paddingVertical: 10,
-    marginBottom: 20,
+    marginBottom: 40,
   },
   matchesHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 8,
   },
   matchesTitle: {
     fontSize: 16,
@@ -356,6 +360,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     padding: 20,
+    height: 500,
     alignItems: "center",
   },
   emptyText: {

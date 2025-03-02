@@ -553,47 +553,6 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
           showsVerticalScrollIndicator={false}
         />
       )}
-      
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Home')}
-        >
-          <Home size={24} color="#737373" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Analytics')}
-        >
-          <BarChart2 size={24} color="#737373" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Premium')}
-        >
-          <View style={styles.crownContainer}>
-            <Crown size={24} color="#737373" />
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('RecentMessages')}
-        >
-          <MessageSquare size={24} color="#00a86b" />
-          <View style={styles.activeIndicator} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Profile')}
-        >
-          <User size={24} color="#737373" />
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };

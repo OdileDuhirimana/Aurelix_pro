@@ -1,14 +1,16 @@
 import type React from "react"
 import type { ReactNode } from "react"
 import { TouchableOpacity, Text, StyleSheet, type ViewStyle, type TextStyle } from "react-native"
+import { StyleProp } from "react-native";
 
 interface ActionButtonProps {
-  label: string
-  icon?: ReactNode
-  onPress: () => void
-  style?: ViewStyle
-  textStyle?: TextStyle
+  label: string;
+  icon?: ReactNode;
+  onPress: () => void;
+  style?: StyleProp<ViewStyle>; // ✅ Fix
+  textStyle?: StyleProp<TextStyle>;
 }
+
 
 const ActionButton: React.FC<ActionButtonProps> = ({ label, icon, onPress, style, textStyle }) => {
   return (

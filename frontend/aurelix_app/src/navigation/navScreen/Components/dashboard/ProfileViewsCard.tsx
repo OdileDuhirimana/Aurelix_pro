@@ -4,7 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { ChevronDown } from "lucide-react-native"
-import MiniLineChart from "../charts/MiniLineChart"
+import MiniLineChart from "../charts/MiniCircularGauge"
 
 interface ProfileView {
   region: string

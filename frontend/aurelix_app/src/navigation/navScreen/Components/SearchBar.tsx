@@ -18,6 +18,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder, onChangeText, value 
         placeholderTextColor="#9E9E9E"
         onChangeText={onChangeText}
         value={value}
+        textAlignVertical="center" // Adjusts the placeholder position
       />
     </View>
   )
@@ -41,11 +42,12 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 12,
     color: "#333333",
     fontFamily: "Poppins-Regular",
+    position: "relative",
+    bottom: -3,
   },
 })
 
 export default SearchBar
-
