@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "rea
 import * as DocumentPicker from "expo-document-picker"
 import { Feather, Ionicons } from "@expo/vector-icons"
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import React from "react"
 
 type RootStackParamList = {
   Verification: undefined;
@@ -12,55 +13,36 @@ type RootStackParamList = {
 
 type Props = NativeStackScreenProps<RootStackParamList, "Verification">
 
-// Simulate a file upload request to the backend
-const simulateFileUpload = (file: string) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (file) {
-        resolve("File uploaded successfully")
-      } else {
-        reject("File upload failed")
-      }
-    }, 2000)
-  })
-}
-
 export default function VerificationScreen({ navigation }: Props) {
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
 
-  // Optimized file picker handler using useCallback
+  // Function to pick a document
   const pickDocument = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["image/png", "image/jpeg", "application/pdf"],
+        type: ["image/png", "image/jpeg"],
       })
 
       if (result.canceled) return
 
-      setSelectedFile(result.assets[0].name)
-      setUploadError(null) // Reset any previous error
+      const fileName = result.assets[0].name
+      const fileType = result.assets[0].mimeType
+
+      setSelectedFile(fileName)
+
+      // If it's an image, show loading indicator before navigating
+      if (fileType === "image/png" || fileType === "image/jpeg") {
+        setIsUploading(true) // Show ActivityIndicator
+        setTimeout(() => {
+          setIsUploading(false) // Hide ActivityIndicator
+          navigation.navigate("Uploading")
+        }, 2000) // Simulate a 2-second upload
+      }
     } catch (error) {
       console.error("Error picking document:", error)
     }
-  }, [])
-
-  // Handle file upload (simulated backend call)
-  const handleUpload = async () => {
-    if (!selectedFile) return
-
-    setIsUploading(true)
-    try {
-      const response = await simulateFileUpload(selectedFile)
-      setIsUploading(false)
-      // Navigate to the next screen or show success
-      navigation.navigate("Uploading")
-    } catch (error) {
-      setIsUploading(false)
-      setUploadError(error as string)
-    }
-  }
+  }, [navigation])
 
   return (
     <View style={styles.container}>
@@ -77,28 +59,22 @@ export default function VerificationScreen({ navigation }: Props) {
         <Text style={styles.stitle}>Verify Eligibility</Text>
 
         {/* File Upload Section */}
-        <TouchableOpacity style={styles.uploadArea} onPress={pickDocument}>
-          <Ionicons name="cloud-upload-outline" size={48} color="#00a86b" />
-          <Text style={styles.uploadText}>
-            {selectedFile ? selectedFile : "Drop File here or "}
-            {!selectedFile && <Text style={styles.browseText}>Browse</Text>}
-          </Text>
-          <Text style={styles.supportedFormats}>Supports png, jpg, pdf</Text>
-        </TouchableOpacity>
-
-        {/* Upload Error Message */}
-        {uploadError && <Text style={styles.errorText}>{uploadError}</Text>}
-
-        {/* Continue Button */}
-        <TouchableOpacity
-          style={[styles.button, !selectedFile && styles.disabledButton]}
-          disabled={!selectedFile || isUploading}
-          onPress={handleUpload}
+        <TouchableOpacity 
+          style={styles.uploadArea} 
+          onPress={pickDocument} 
+          disabled={isUploading} // Disable button while uploading
         >
           {isUploading ? (
-            <ActivityIndicator size="small" color="#FCE986" />
+            <ActivityIndicator size="large" color="#00a86b" />
           ) : (
-            <Text style={styles.buttonText}>Continue</Text>
+            <>
+              <Ionicons name="cloud-upload-outline" size={48} color="#00a86b" />
+              <Text style={styles.uploadText}>
+                {selectedFile ? selectedFile : "Drop File here or "}
+                {!selectedFile && <Text style={styles.browseText}>Browse</Text>}
+              </Text>
+              <Text style={styles.supportedFormats}>Supports png, jpg, pdf</Text>
+            </>
           )}
         </TouchableOpacity>
       </View>
@@ -156,26 +132,5 @@ const styles = StyleSheet.create({
   supportedFormats: {
     color: "#6b7280",
     marginTop: 5,
-  },
-  errorText: {
-    color: "#ff0000",
-    marginTop: 10,
-  },
-  button: {
-    width: "100%",
-    maxWidth: 330,
-    backgroundColor: "#00a86b",
-    padding: 15,
-    borderRadius: 25,
-    alignItems: "center",
-    marginTop: 20,
-  },
-  disabledButton: {
-    backgroundColor: "#a5d6a7",
-  },
-  buttonText: {
-    color: "#FCE986",
-    fontFamily: 'Poppins-Bold',
-    fontSize: 20,
   },
 })

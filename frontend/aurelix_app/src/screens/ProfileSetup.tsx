@@ -1,162 +1,386 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  Platform,
   ScrollView,
-  TextInput,
-  Alert,
-  ActivityIndicator
-} from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import type { StackNavigationProp } from "@react-navigation/stack";
+  Modal,
+  FlatList,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-// Define types
-type RootStackParamList = {
-  Profile: undefined;
-};
+const ProfileScreen = ({ navigation }) => {
+  const [userType, setUserType] = useState('entrepreneur');
+  const [businessName, setBusinessName] = useState('');
+  const [sector, setSector] = useState('');
+  const [status, setStatus] = useState('');
+  const [website, setWebsite] = useState('');
+  const [location, setLocation] = useState('');
+  const [employees, setEmployees] = useState('');
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [selectedDropdown, setSelectedDropdown] = useState('');
+  const [dropdownOptions, setDropdownOptions] = useState([]);
 
-type NavigationProp = StackNavigationProp<RootStackParamList>;
+  const handleContinue = () => {
+    console.log({
+      userType,
+      businessName,
+      sector,
+      status,
+      website,
+      location,
+      employees,
+    });
+    navigation.navigate('Success');
+  };
 
-type UserType = "entrepreneur" | "investor";
+  const dropdownData = {
+    sector: ['Agriculture', 'Technology', 'Healthcare', 'Education', 'Finance'],
+    status: ['Startup', 'SME', 'Enterprise'],
+    employees: ['1-10', '11-50', '51-100', '100+'],
+  };
 
-type FormData = {
-  businessName: string;
-  sector: string;
-  status: string;
-  website: string;
-  location: string;
-  employees: string;
-};
+  const openDropdown = (type) => {
+    setDropdownOptions(dropdownData[type]);
+    setSelectedDropdown(type);
+    setDropdownVisible(true);
+  };
 
-const ProfileScreen = () => {
-  const navigation = useNavigation<NavigationProp>();
-  const [userType, setUserType] = useState<UserType>("entrepreneur");
-  const [formData, setFormData] = useState<FormData>({
-    businessName: "",
-    sector: "",
-    status: "",
-    website: "",
-    location: "",
-    employees: "",
-  });
+  const selectOption = (option) => {
+    if (selectedDropdown === 'sector') setSector(option);
+    if (selectedDropdown === 'status') setStatus(option);
+    if (selectedDropdown === 'employees') setEmployees(option);
+    setDropdownVisible(false);
+  };
 
-  const [sectors, setSectors] = useState<string[]>([]);
-  const [statuses, setStatuses] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const renderDropdownField = (label, value, placeholder, type, optional = false) => {
+    return (
+      <View style={styles.fieldContainer}>
+        <Text style={styles.fieldLabel}>
+          {label}
+          {optional && <Text style={styles.optionalText}> (Optional)</Text>}
+        </Text>
+        <TouchableOpacity
+          style={styles.dropdownInput}
+          onPress={() => openDropdown(type)}>
+          <TextInput
+            style={styles.inputText}
+            placeholder={placeholder}
+            placeholderTextColor="#AAAAAA"
+            value={value}
+            editable={false}
+          />
+          <Ionicons name="chevron-down" size={20} color="#333" style={styles.dropdownIcon} />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // Simulated API call
-        setSectors(["Agriculture", "Tech", "Healthcare", "Finance"]);
-        setStatuses(["Startup", "Established", "Growing"]);
-      } catch (error) {
-        Alert.alert("Error", "Failed to load data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
-
-  const handleContinue = useCallback(async () => {
-    const { businessName, sector, status } = formData;
-    if (!businessName || !sector || !status) {
-      Alert.alert("Error", "Please fill out all required fields.");
-      return;
-    }
-    setLoading(true);
-    try {
-      // Simulated backend call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      Alert.alert("Success", "Profile submitted successfully!");
-    } catch (error) {
-      Alert.alert("Error", "Submission failed.");
-    } finally {
-      setLoading(false);
-    }
-  }, [formData]);
-
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prevState) => ({ ...prevState, [field]: value }));
+  const renderTextField = (label, value, placeholder, onChange, optional = false) => {
+    return (
+      <View style={styles.fieldContainer}>
+        <Text style={styles.fieldLabel}>
+          {label}
+          {optional && <Text style={styles.optionalText}> (Optional)</Text>}
+        </Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder={placeholder}
+          placeholderTextColor="#AAAAAA"
+          value={value}
+          onChangeText={onChange}
+        />
+      </View>
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-
+      
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Feather name="chevron-left" size={24} color="#000" />
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
       </View>
 
-      {loading && <ActivityIndicator size="large" color="#00A86B" style={styles.loader} />}
-      
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.typeContainer}>
-          {["entrepreneur", "investor"].map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={styles.typeOption}
-              onPress={() => setUserType(type as UserType)}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* User Type Selection */}
+        <View style={styles.userTypeContainer}>
+          <TouchableOpacity
+            style={[
+              styles.userTypeOption,
+              userType === 'entrepreneur' && styles.userTypeOptionSelected,
+            ]}
+            onPress={() => setUserType('entrepreneur')}
+          >
+            <View
+              style={[
+                styles.radioButton,
+                userType === 'entrepreneur' && styles.radioButtonSelected,
+              ]}
             >
-              <View style={[styles.radio, userType === type && styles.radioSelected]}>
-                {userType === type && <View style={styles.radioInner} />}
-              </View>
-              <Text style={styles.typeText}>{type.charAt(0).toUpperCase() + type.slice(1)}</Text>
-            </TouchableOpacity>
-          ))}
+              {userType === 'entrepreneur' && <View style={styles.radioButtonInner} />}
+            </View>
+            <Text style={styles.userTypeText}>Entrepreneur</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.userTypeOption,
+              userType === 'investor' && styles.userTypeOptionSelected,
+            ]}
+            onPress={() => setUserType('investor')}
+          >
+            <View
+              style={[
+                styles.radioButton,
+                userType === 'investor' && styles.radioButtonSelected,
+              ]}
+            >
+              {userType === 'investor' && <View style={styles.radioButtonInner} />}
+            </View>
+            <Text style={styles.userTypeText}>Investor</Text>
+          </TouchableOpacity>
         </View>
 
-        {["businessName", "sector", "status", "website", "location", "employees"].map((field) => (
-          <View key={field} style={styles.formGroup}>
-            <Text style={styles.label}>{field.charAt(0).toUpperCase() + field.slice(1)}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder={`Enter ${field}`}
-              placeholderTextColor="#9CA3AF"
-              value={formData[field as keyof FormData]}
-              onChangeText={(text) => handleInputChange(field as keyof FormData, text)}
-            />
-          </View>
-        ))}
+        {renderTextField(
+          'Business Name',
+          businessName,
+          'Ex: Mc Donalds',
+          setBusinessName
+        )}
 
-        <TouchableOpacity style={styles.continueButton} onPress={handleContinue} disabled={loading}>
+        {renderDropdownField(
+          'Sector/Type',
+          sector,
+          'Ex: Agriculture',
+          'sector'
+        )}
+
+        {renderDropdownField(
+          'Status',
+          status,
+          'Ex: Startup',
+          'status'
+        )}
+
+        {renderTextField(
+          'Website',
+          website,
+          'Ex: www.example.com',
+          setWebsite,
+          true
+        )}
+
+        {renderTextField(
+          'Location',
+          location,
+          'Ex: Kigali KG44 ST',
+          setLocation,
+          true
+        )}
+
+        {renderDropdownField(
+          'Number of Employees',
+          employees,
+          'Ex: 70',
+          'employees',
+          true
+        )}
+
+        <TouchableOpacity
+          style={styles.continueButton}
+          onPress={handleContinue}
+        >
           <Text style={styles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
+
+        {/* Dropdown Modal */}
+        <Modal visible={dropdownVisible} animationType="slide" transparent>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <FlatList
+                data={dropdownOptions}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity 
+                    style={styles.option} 
+                    onPress={() => selectOption(item)}
+                  >
+                    <Text style={styles.optionText}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity 
+                style={styles.closeButton} 
+                onPress={() => setDropdownVisible(false)}
+              >
+                <Text style={styles.closeButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9F9F9" },
-  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, marginTop: 38, marginBottom: 24 },
-  backButton: { padding: 8 },
-  headerTitle: { fontSize: 16, fontWeight: "600" },
-  content: { flex: 1, paddingHorizontal: 24 },
-  typeContainer: { flexDirection: "row", marginBottom: 16 },
-  typeOption: { flexDirection: "row", alignItems: "center", marginRight: 16 },
-  typeText: { fontSize: 14, color: "#000" },
-  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: "#D1D5DB", alignItems: "center", justifyContent: "center" },
-  radioSelected: { borderColor: "#00A86B" },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#00A86B" },
-  formGroup: { marginBottom: 24 },
-  label: { fontSize: 14, color: "#6B7280" },
-  input: { height: 40, borderWidth: 1, borderColor: "#E5E7EB", borderRadius: 10, paddingHorizontal: 10 },
-  continueButton: { backgroundColor: "#00A86B", borderRadius: 10, height: 50, justifyContent: "center", alignItems: "center" },
-  continueButtonText: { color: "#FFEB3B", fontSize: 18, fontWeight: "600" },
-  loader: { marginVertical: 10 }
+  container: { 
+      flex: 1, 
+      backgroundColor: "#F9F9F9", 
+      padding: 20
+  },
+  header: { 
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    height: 40,
+    gap: 65,
+    marginTop: 40,
+    marginBottom: 10,
+  },
+  headerTitle: { 
+    fontFamily: "Poppins-Bold",
+    fontSize: 18,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 10,
+    paddingBottom: 40,
+  },
+  userTypeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 38,
+    marginBottom: 20,
+  },
+  userTypeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    width: '48%',
+  },
+  userTypeOptionSelected: {
+    borderColor: '#00B074',
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#A3A2A3',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioButtonSelected: {
+    borderColor: '#00B074',
+  },
+  radioButtonInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 6,
+    backgroundColor: '#00B074',
+  },
+  userTypeText: {
+    fontSize: 12,
+    fontFamily: 'Poppins-ExtraLight',
+    color: '#A3A2A3',
+    height: 20,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 6,
+    paddingVertical: 1,
+    paddingHorizontal: 16,
+  },
+  fieldContainer: {
+    marginBottom: 20,
+  },
+  fieldLabel: {
+    fontSize: 16,
+    fontFamily: 'Poppins-SemiBold',
+    color: '#787777',
+    marginBottom: 10,
+  },
+  optionalText: {
+    color: '#999999',
+    fontWeight: '400',
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#221F1F1A',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    fontSize: 16,
+    color: '#333333',
+  },
+  dropdownInput: {
+    borderWidth: 1,
+    borderColor: '#221F1F1A',
+    borderRadius: 25,
+    paddingHorizontal: 25,
+    paddingVertical: 7,
+    fontSize: 16,
+    color: '#333333',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  inputText: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: '#333333',
+  },
+  dropdownIcon: {
+    marginLeft: 10,
+  },
+  continueButton: {
+    backgroundColor: '#00B074',
+    width: 170,
+    borderRadius: 32,
+    paddingVertical: 15,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  continueButtonText: {
+    color: '#FFEB3B',
+    fontSize: 20,
+    fontFamily: 'Poppins-Bold',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#FFF',
+    width: '80%',
+    borderRadius: 10,
+    padding: 20,
+    maxHeight: '60%',
+  },
+  option: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#EEE' },
+  optionText: { fontSize: 16, color: '#333' },
+  closeButton: { marginTop: 15, alignItems: 'center' },
+  closeButtonText: { color: 'red', fontSize: 16 },
 });
 
 export default ProfileScreen;

@@ -16,46 +16,10 @@ import {
   Animated,
   Dimensions
 } from 'react-native';
-import { ArrowLeft, Search, Paperclip, Mic, Send } from 'lucide-react-native';
+import { ChevronLeft, Search, Paperclip, Mic, Send } from 'lucide-react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
-
-// Define TypeScript interfaces for data structures
-interface User {
-  id: string;
-  name: string;
-  avatar: string;
-  bio?: string;
-  industry?: string;
-}
-
-interface Message {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  receiverId: string;
-  content: string;
-  timestamp: string;
-  status: 'sent' | 'delivered' | 'read' | 'failed';
-  type: 'text' | 'image' | 'file' | 'audio';
-  metadata?: {
-    fileName?: string;
-    fileSize?: number;
-    fileType?: string;
-    duration?: number;
-    width?: number;
-    height?: number;
-    thumbnailUrl?: string;
-  };
-}
-
-interface Conversation {
-  id: string;
-  participants: string[];
-  lastMessageId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Message, User, Conversation } from '../index';
 
 // API service for data fetching and operations
 const API = {
@@ -736,7 +700,7 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <ArrowLeft size={24} color="#171725" />
+            <ChevronLeft size={24} color="#171725" />
           </TouchableOpacity>
           
           {participant && (
@@ -859,7 +823,7 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F9F9F9',
   },
   container: {
     flex: 1,
@@ -870,8 +834,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    marginTop: 20,
+    marginBottom: 5,
+    gap: 10,
   },
   backButton: {
     width: 40,

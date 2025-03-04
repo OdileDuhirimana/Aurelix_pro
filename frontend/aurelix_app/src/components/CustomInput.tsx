@@ -33,6 +33,7 @@ const CustomInput: React.FC<CustomInputProps> = React.memo(({ type, placeholder,
         keyboardType={type === "email" ? "email-address" : "default"}
         autoCapitalize={type === "email" ? "none" : "sentences"}
         autoComplete={type === "email" ? "email" : "off"} 
+        
       />
       {type === "password" && (
         <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(prevState => !prevState)}>
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: "Poppins-Regular", // Ensure to use a fallback font for better cross-platform compatibility
     fontSize: 14,
-    color: "#221F1F66", // Better contrast for readability
+    color: "#000",
     marginLeft: 12,
     marginBottom: -5,
   },

@@ -1,62 +1,42 @@
 import type { Investor, Region, FilterOption, SortOption } from "../../index"
 
-// Mock data for investors
-const investorsData: Investor[] = [
-  {
-    id: "1",
-    name: "Mark Robinson",
-    investments: "150+",
-    industry: "Agriculture",
-    location: "Rwanda",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/InveConnect-REd9M7FqoOgx3wvOSnUBXgy7UsBLuw.png#crop=30,390,220,580",
-  },
-  {
-    id: "2",
-    name: "John Doe",
-    investments: "150+",
-    industry: "Agriculture",
-    location: "Rwanda",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/InveConnect-REd9M7FqoOgx3wvOSnUBXgy7UsBLuw.png#crop=240,390,430,580",
-  },
-  {
-    id: "3",
-    name: "Fred Jones",
-    investments: "150+",
-    industry: "Agriculture",
-    location: "Rwanda",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/InveConnect-REd9M7FqoOgx3wvOSnUBXgy7UsBLuw.png#crop=30,700,220,890",
-  },
-  {
-    id: "4",
-    name: "James Smith",
-    investments: "150+",
-    industry: "Agriculture",
-    location: "Rwanda",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/InveConnect-REd9M7FqoOgx3wvOSnUBXgy7UsBLuw.png#crop=240,700,430,890",
-  },
-  {
-    id: "5",
-    name: "Emily Winner",
-    investments: "150+",
-    industry: "Agriculture",
-    location: "Rwanda",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/InveConnect-REd9M7FqoOgx3wvOSnUBXgy7UsBLuw.png#crop=30,1010,220,1200",
-  },
-  {
-    id: "6",
-    name: "Christopher Brown",
-    investments: "150+",
-    industry: "Agriculture",
-    location: "Rwanda",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/InveConnect-REd9M7FqoOgx3wvOSnUBXgy7UsBLuw.png#crop=240,1010,430,1200",
-  },
-]
+const investorsData = [
+  { id: "1", name: "Mark Robinson", investments: "150+", industry: "Agriculture", location: "Rwanda", image: "./images/mark_robinson.jpg" },
+  { id: "2", name: "John Doe", investments: "200+", industry: "Technology", location: "Rwanda", image: "./images/john_doe.jpg" },
+  { id: "3", name: "Fred Jones", investments: "180+", industry: "Healthcare", location: "Rwanda", image: "./images/fred_jones.jpg" },
+  { id: "4", name: "James Smith", investments: "220+", industry: "Real Estate", location: "Rwanda", image: "./images/james_smith.jpg" },
+  { id: "5", name: "Emily Winner", investments: "160+", industry: "Finance", location: "Germany", image: "./images/emily_winner.jpg" },
+  { id: "6", name: "Christopher Brown", investments: "175+", industry: "Retail", location: "Rwanda", image: "./images/christopher_brown.jpg" },
+  { id: "7", name: "Natalie Clark", investments: "190+", industry: "Energy", location: "France", image: "./images/natalie_clark.jpg" },
+  { id: "8", name: "Oliver White", investments: "140+", industry: "E-commerce", location: "Europe", image: "./images/oliver_white.jpg" },
+  { id: "9", name: "Sophia Carter", investments: "250+", industry: "Biotech", location: "Singapore", image: "./images/sophia_carter.jpg" },
+  { id: "10", name: "Henry Adams", investments: "130+", industry: "Education", location: "South Africa", image: "./images/henry_adams.jpg" },
+  
+  { id: "11", name: "Lucas Thompson", investments: "210+", industry: "Automotive", location: "Europe", image: "./images/lucas_thompson.jpg" },
+  { id: "12", name: "Grace Wilson", investments: "270+", industry: "Pharmaceuticals", location: "Italy", image: "./images/grace_wilson.jpg" },
+  { id: "13", name: "Ethan Johnson", investments: "190+", industry: "Fashion", location: "Brazil", image: "./images/ethan_johnson.jpg" },
+  { id: "14", name: "Ava Miller", investments: "160+", industry: "Media", location: "UAE", image: "./images/ava_miller.jpg" },
+  { id: "15", name: "Michael Garcia", investments: "140+", industry: "AI & Robotics", location: "China", image: "./images/michael_garcia.jpg" },
+  { id: "16", name: "William Harris", investments: "230+", industry: "Blockchain", location: "Netherlands", image: "./images/william_harris.jpg" },
+  { id: "17", name: "Charlotte Anderson", investments: "170+", industry: "Cybersecurity", location: "Sweden", image: "./images/charlotte_anderson.jpg" },
+  { id: "18", name: "Daniel Martinez", investments: "200+", industry: "Cloud Computing", location: "South Korea", image: "./images/daniel_martinez.jpg" },
+  { id: "19", name: "Mia Rodriguez", investments: "220+", industry: "Logistics", location: "Spain", image: "./images/mia_rodriguez.jpg" },
+  { id: "20", name: "Benjamin Lee", investments: "280+", industry: "Gaming", location: "Russia", image: "./images/benjamin_lee.jpg" },
+  
+  { id: "21", name: "Elijah King", investments: "135+", industry: "Telecommunications", location: "Nigeria", image: "./images/elijah_king.jpg" },
+  { id: "22", name: "Harper Scott", investments: "195+", industry: "Food & Beverage", location: "Mexico", image: "./images/harper_scott.jpg" },
+  { id: "23", name: "David Young", investments: "170+", industry: "Aerospace", location: "Turkey", image: "./images/david_young.jpg" },
+  { id: "24", name: "Ella Turner", investments: "155+", industry: "Tourism", location: "Thailand", image: "./images/ella_turner.jpg" },
+  { id: "25", name: "Jack Hall", investments: "145+", industry: "Agritech", location: "Kenya", image: "./images/jack_hall.jpg" },
+  { id: "26", name: "Amelia Lewis", investments: "250+", industry: "Fintech", location: "Poland", image: "./images/amelia_lewis.jpg" },
+  { id: "27", name: "Matthew Allen", investments: "200+", industry: "Streaming Services", location: "Malaysia", image: "./images/matthew_allen.jpg" },
+  { id: "28", name: "Lily Walker", investments: "275+", industry: "Insurance", location: "Switzerland", image: "./images/lily_walker.jpg" },
+  { id: "29", name: "Nathan Perez", investments: "180+", industry: "Bioengineering", location: "Argentina", image: "./images/nathan_perez.jpg" },
+  { id: "30", name: "Hannah Wright", investments: "240+", industry: "Crypto", location: "Philippines", image: "./images/hannah_wright.jpg" },
+  
+  // Add 20 more investors following the same pattern...
+];
+
 
 // Region filter options
 const regionsData: Region[] = [

@@ -12,7 +12,7 @@ import {
   RefreshControl,
   TextInput
 } from 'react-native';
-import { ArrowLeft, Search, Home, BarChart2, Crown, MessageSquare, User } from 'lucide-react-native';
+import { ChevronLeft, Search, Home, BarChart2, Crown, MessageSquare, User } from 'lucide-react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -496,7 +496,7 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <ArrowLeft size={24} color="#171725" />
+          <ChevronLeft size={24} color="#171725" />
         </TouchableOpacity>
         
         <Text style={styles.headerTitle}>Recents</Text>
@@ -558,29 +558,34 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    safeArea: {
+      flex: 1,
+      backgroundColor: '#F9F9F9',
+    },
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginTop: 20,
+      marginBottom: 10,
+      gap: 10,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   headerTitle: {
+    fontFamily: 'Inter-Variable',
     fontSize: 20,
-    fontWeight: '600',
-    color: '#171725',
+    fontWeight: '700',
+    color: '#221F1F',
   },
   searchButton: {
     width: 40,
@@ -591,12 +596,10 @@ const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   searchInput: {
     height: 40,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
     borderRadius: 8,
     paddingHorizontal: 12,
     fontSize: 16,

@@ -12,7 +12,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { 
-  ArrowLeft, 
+  ChevronLeft, 
   Paperclip, 
   Mic, 
   Send, 
@@ -153,10 +153,10 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <ArrowLeft size={24} color="#171725" />
+            <ChevronLeft size={24} color="#171725" />
           </TouchableOpacity>
           <Text style={styles.title}>AI pitch coach</Text>
-          <View style={styles.placeholder} />
+          {/* <View style={styles.placeholder} /> */}
         </View>
 
         {/* Main Content */}
@@ -235,7 +235,7 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F9F9F9',
   },
   container: {
     flex: 1,
@@ -243,9 +243,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    marginTop: 20,
+    marginBottom: 120,
+    gap: 10,
   },
   backButton: {
     width: 40,
@@ -254,18 +256,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
+    fontFamily: 'Inter-Variable',
     fontSize: 20,
-    fontWeight: '600',
-    color: '#171725',
+    fontWeight: '700',
+    color: '#221F1F',
   },
   placeholder: {
     width: 40,
   },
   content: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 25,
   },
   headingContainer: {
     flexDirection: 'row',
@@ -273,7 +275,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   heading: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '600',
     color: '#171725',
   },
@@ -289,13 +291,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     width: '100%',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   inputWrapper: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    alignItems: 'flex-end',
+    backgroundColor: '#FBFBFB',
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -308,6 +310,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     maxHeight: 100,
     color: '#171725',
+    alignSelf: 'center',
     padding: 0,
   },
   inputIcons: {
@@ -323,6 +326,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#00a86b',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+    top: -3,
   },
   quickActionsContainer: {
     flexDirection: 'row',
@@ -331,19 +336,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionButton: {
+    // width: 76,
+    // height: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+    justifyContent: 'flex-start',
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    borderRadius: 5,
     borderWidth: 1,
     borderColor: '#e5e5e5',
     backgroundColor: '#f9f9f9',
+    gap: 4,
   },
   actionText: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 4,
+    fontSize: 10,
+    color: '#221F1FB2',
   },
   loadingContainer: {
     flexDirection: 'row',

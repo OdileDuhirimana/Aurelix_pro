@@ -4,10 +4,12 @@ import {
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import React from "react";
 
 type RootStackParamList = {
   ProfileSetup: undefined;
   Uploading: undefined;
+  Data: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "Uploading">;
@@ -16,7 +18,7 @@ export default function UploadingScreen({ navigation }: Props) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [userAge, setUserAge] = useState<number>(20); // Add age state
+  const [userAge, setUserAge] = useState<number>(16); // Add age state
 
   const progressAnim = useRef(new Animated.Value(uploadProgress)).current;
 
@@ -31,6 +33,7 @@ export default function UploadingScreen({ navigation }: Props) {
         clearInterval(interval);
         setIsUploading(false);
         setUploadProgress(100);
+        setUserAge(16);
       } else {
         progress += 5; // Increment progress
         setUploadProgress(progress);
@@ -55,11 +58,12 @@ export default function UploadingScreen({ navigation }: Props) {
   };
 
   const handleVerify = () => {
+    
     // Age-based navigation logic (could simulate backend validation)
     if (userAge < 18) {
-      navigation.navigate("ProfileSetup");
+      navigation.navigate("Data");
     } else {
-      navigation.navigate("ProfileSetup");
+      navigation.navigate("Data");
     }
   };
 
@@ -100,11 +104,14 @@ export default function UploadingScreen({ navigation }: Props) {
           <Feather name="chevron-left" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Verification</Text>
-        <View style={{ width: 24 }} />
+        
       </View>
 
       {/* Title */}
+      <View style={styles.subtitleContainer}>
       <Text style={styles.title}>Verify Eligibility</Text>
+      </View>
+      
 
       {/* Upload Area */}
       <View style={styles.uploadArea}>
@@ -142,14 +149,15 @@ export default function UploadingScreen({ navigation }: Props) {
           </TouchableOpacity>
         ) : (
           <>
-            <TouchableOpacity style={styles.button} onPress={handleVerify}>
-              <Text style={styles.buttonText}>Verify</Text>
-            </TouchableOpacity>
-            {errorMessage && (
+            {errorMessage? (
               <TouchableOpacity style={styles.button} onPress={handleRetry}>
                 <Text style={styles.buttonText}>Retry</Text>
               </TouchableOpacity>
-            )}
+            ):(
+            <TouchableOpacity style={styles.button} onPress={handleVerify}>
+            <Text style={styles.buttonText}>Verify</Text>
+          </TouchableOpacity>
+        )}
           </>
         )}
       </View>
@@ -188,9 +196,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     height: 40,
-    gap: 56,
+    gap: 65,
     marginTop: 60,
-    marginBottom: 21,
+    marginBottom: 10,
   },
   headerTitle: {
     fontFamily: "Poppins-Bold",
@@ -267,6 +275,10 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
   },
+  subtitleContainer:{
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   button: {
     width: "100%",
     maxWidth: 300,
@@ -281,11 +293,15 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     width: '100%',
+    maxWidth: 300,
     backgroundColor: "#ff4d4d",
     padding: 15,
     borderRadius: 25,
     alignItems: "center",
+    height: 60,
     marginTop: 20,
+    justifyContent: "center",
+    alignContent: "center",
   },
   buttonText: {
     color: "#fce986",

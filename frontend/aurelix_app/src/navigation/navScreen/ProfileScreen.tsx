@@ -666,49 +666,6 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
         renderProfileContent()
       )}
       
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Home')}
-        >
-          <Home size={24} color="#737373" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Analytics')}
-        >
-          <BarChart2 size={24} color="#737373" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('AICoach')}
-        >
-          <View style={styles.aiNavItem}>
-            <Bot size={24} color="#737373" />
-            <View style={styles.crownBadge}>
-              <Crown size={12} color="#f8c82d" />
-            </View>
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('RecentMessages')}
-        >
-          <MessageSquare size={24} color="#737373" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Profile')}
-        >
-          <User size={24} color="#00a86b" />
-          <View style={styles.activeIndicator} />
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };

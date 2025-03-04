@@ -8,7 +8,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
-  ScrollView,
   FlatList,
   ActivityIndicator,
   RefreshControl,
@@ -123,7 +122,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }
 
   const handleFilterSelect = (type: string, option: FilterOption) => {
-    // In a real app, you would apply the filter
+    // In a real app, you would apply thttps://www.figma.com/design/F3SwHNnHXYNlkveAlSu12b/InveConnect?node-id=646-602&t=p4huLioJzzYsQ5JV-1he filter
     console.log(`Selected ${type}: ${option.name}`)
     setShowFilterPopup(false)
   }
@@ -238,24 +237,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             />
           </View>
         </View>
-
+       
         <FlatList
-  data={investors}
-  renderItem={renderInvestorItem}
-  keyExtractor={(item) => item.id}
-  numColumns={2}
-  showsVerticalScrollIndicator={false}
-  contentContainerStyle={{ ...styles.investorList, flexGrow: 1 }} // Ensure it takes available space
-  columnWrapperStyle={styles.investorRow}
-  refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#00a86b"]} />}
-  ListEmptyComponent={
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>No investors found</Text>
-    </View>
-  }
-/>
-
-
+          data={investors}
+          renderItem={renderInvestorItem}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ ...styles.investorList, flexGrow: 1 }} // Ensure it takes available space
+          columnWrapperStyle={styles.investorRow}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#00a86b"]} />}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No investors found</Text>
+            </View>
+          }
+        />
 
 
         <FilterPopup

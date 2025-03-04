@@ -13,18 +13,20 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.odiboo.aurelix-app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.odiboo.aurelix_app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins":[
+    "plugins": [
       [
         "expo-font",
         {
@@ -39,6 +41,12 @@
           ]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "362f39ee-3e33-4cb6-b4a4-549c10be97e1"
+      }
+    },
+    "scheme": "aurelix_app"
   }
 }

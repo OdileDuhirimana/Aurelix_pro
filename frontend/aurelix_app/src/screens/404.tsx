@@ -37,7 +37,7 @@ export default function NotFoundScreen({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F9F9F9",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   },
   errorCode: {
     fontSize: 110,
-    fontWeight: "bold",
+    fontFamily: 'Poppins-Black',
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
@@ -58,11 +58,13 @@ const styles = StyleSheet.create({
   sadFace: {
     width: 95,
     height: 110,
-    borderRadius: 9999,
+    borderRadius: "100%",
     backgroundColor: "#00a86b",
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 5,
+    position: 'relative',
+    top: 10,
   },
   sadFaceImage: {
     width: 80,
@@ -70,7 +72,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain', // Ensures the image fits correctly inside the circle
   },
   errorMessage: {
-    fontSize: 18,
+    fontFamily: 'Poppins-Light',
+    fontSize: 16,
     textAlign: "center",
     color: "#6b7280",
   },
@@ -79,9 +82,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   buttonText: {
+    fontFamily: 'Poppins-Bold',
     color: "#00a86b",
     fontSize: 18,
-    fontWeight: "bold",
   },
   dotsContainer: {
     flexDirection: "row",

@@ -62,3 +62,64 @@ export interface Investor {
   }
   
   
+// Define TypeScript interfaces for data structures
+ export interface User {
+    id: string;
+    name: string;
+    avatar: string;
+    bio?: string;
+    industry?: string;
+  }
+  
+  export interface Message {
+    id: string;
+    conversationId: string;
+    senderId: string;
+    receiverId: string;
+    content: string;
+    timestamp: string;
+    status: 'sent' | 'delivered' | 'read' | 'failed';
+    type: 'text' | 'image' | 'file' | 'audio';
+    metadata?: {
+      fileName?: string;
+      fileSize?: number;
+      fileType?: string;
+      duration?: number;
+      width?: number;
+      height?: number;
+      thumbnailUrl?: string;
+    };
+  }
+  
+  export interface Conversation {
+    id: string;
+    participants: string[];
+    lastMessageId: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  export interface UserProfile {
+    id: string;
+    name: string;
+    avatar: string;
+    activeSince: string;
+    email: string;
+    phone: string;
+    website: string;
+    isPremium: boolean;
+    hasBusinessDocuments: boolean;
+    createdAt: string;
+    updatedAt: string;
+  }
+  
+  export interface ProfileSection {
+    id: string;
+    title: string;
+    icon: React.ReactNode;
+    action: () => void;
+    isPremium?: boolean;
+    isActive?: boolean;
+  }
+
+  

@@ -9,7 +9,7 @@ import CustomInput from "../components/CustomInput";
 type RootStackParamList = {
   ForgotPassword: undefined;
   NewPassword: undefined;
-  VerifyEligibility: undefined;
+  Login: undefined,
 };
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -67,7 +67,7 @@ const NewPasswordScreen = () => {
       // Simulating a backend call
       const response = await simulateBackendCall(state.newPassword);
       if (response.success) {
-        navigation.navigate("VerifyEligibility");
+        navigation.navigate("Login");
       } else {
         dispatch({ type: "SET_ERROR", payload: response.error });
       }

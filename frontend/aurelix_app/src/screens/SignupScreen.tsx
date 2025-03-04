@@ -109,7 +109,7 @@ const SignupScreen: React.FC = () => {
           <View style={styles.inputContainer}>
             <CustomInput
               type="text"
-              placeholder="Enter your name"
+              placeholder="Enter your username"
               icon="user"
               value={formState.name}
               onChange={(value) => dispatch({ type: actionTypes.UPDATE_FORM, field: "name", value })}

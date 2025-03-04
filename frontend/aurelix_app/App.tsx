@@ -15,6 +15,7 @@ import BottomTabNavigator from "./src/navigation/TabNavigator";
 import UploadingScreen from "./src/screens/UploadingScreen";
 import ProfileSetupScreen from "./src/screens/ProfileSetup";
 import SuccessScreen from "./src/screens/SuccessPage";
+import IDVerifyScreen from "./src/screens/IDVerify";
 
 const Stack = createStackNavigator();
 
@@ -25,9 +26,11 @@ export default function App() {
     "Poppins-Medium": require("./assets/fonts/Poppins-Medium.ttf"),
     "Poppins-SemiBold": require("./assets/fonts/Poppins-SemiBold.ttf"),
     "Poppins-Bold": require("./assets/fonts/Poppins-Bold.ttf"),
+    "Poppins-Black": require("./assets/fonts/Poppins-Black.ttf"),
     "Poppins-Light": require("./assets/fonts/Poppins-Light.ttf"),
     "Poppins-ExtraLight": require("./assets/fonts/Poppins-ExtraLight.ttf"),
     "Poppins-Thin": require("./assets/fonts/Poppins-Thin.ttf"),
+    "Inter-Variable": require("./assets/fonts/Inter-VariableFont_opsz,wght.ttf"),
   });
 
   if (!fontsLoaded) {
@@ -51,6 +54,7 @@ export default function App() {
         <Stack.Screen name="Uploading" component={UploadingScreen} />
         <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
         <Stack.Screen name="Success" component={SuccessScreen} />
+        <Stack.Screen name="Data" component={IDVerifyScreen}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

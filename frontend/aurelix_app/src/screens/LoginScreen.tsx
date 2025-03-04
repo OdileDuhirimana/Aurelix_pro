@@ -1,10 +1,27 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native"
 import { Feather } from "@expo/vector-icons"
 import CustomInput from "../components/CustomInput"
 import { useNavigation } from "@react-navigation/native"
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+
+
+const androidClientId = "995334592785-9tre585q3mr7a3m8bled0u7qnhfnju2t.apps.googleusercontent.com"
+const iosClientId = "995334592785-g5q6kcuicmh8k27ogepntone1u6lfv6k.apps.googleusercontent.com"
+const webClientId = "995334592785-n248qk2a880kgvf049avclnqaj3hacbf.apps.googleusercontent.com"
+
+
+WebBrowser.maybeCompleteAuthSession();
+
+const config = {
+  androidClientId,
+  iosClientId,
+  webClientId,
+}
 
 const LoginScreen: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -57,6 +74,33 @@ const LoginScreen: React.FC = () => {
     })
   }
 
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: androidClientId,
+    iosClientId: iosClientId,
+    webClientId: webClientId,
+  });
+  
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { authentication } = response;
+      handleGoogleSignIn(authentication?.accessToken);
+    }
+  }, [response]);
+  
+  const handleGoogleSignIn = async (token: string | undefined) => {
+    if (!token) return;
+    
+    const userInfoResponse = await fetch("https://www.googleapis.com/userinfo/v2/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
+    const user = await userInfoResponse.json();
+    await AsyncStorage.setItem("user", JSON.stringify(user));
+    console.log("User Info:", user);
+    navigation.navigate("Home" as never);
+  };
+  
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -74,7 +118,7 @@ const LoginScreen: React.FC = () => {
           <View style={styles.inputContainer}>
             <CustomInput
               type="text"
-              placeholder="Enter your name"
+              placeholder="Enter your username"
               icon="user"
               value={formData.name}
               onChange={(value) => setFormData({ ...formData, name: value })}
@@ -123,7 +167,7 @@ const LoginScreen: React.FC = () => {
           </View>
 
           {/* Social Login Buttons */}
-          <TouchableOpacity style={styles.socialButton} onPress={() => console.log("Google Login")}>
+          <TouchableOpacity style={styles.socialButton} onPress={() => promptAsync()}>
             <Text style={styles.socialButtonText}>Sign in with Google</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialButton} onPress={() => console.log("Facebook Login")}>

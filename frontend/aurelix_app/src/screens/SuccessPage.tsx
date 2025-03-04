@@ -1,7 +1,18 @@
 import { View, Text, StyleSheet } from "react-native"
 import { Check } from "lucide-react-native"
+import { useEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
 
 export default function SuccessScreen() {
+  const navigation = useNavigation();
+  useEffect(() => {
+      const timer = setTimeout(() => {
+        navigation.navigate("Welcome" as never);
+      }, 5000); // 3 seconds
+  
+      return () => clearTimeout(timer);
+    }, [navigation]);
+  
   return (
     <View style={styles.container}>
       <View style={styles.content}>

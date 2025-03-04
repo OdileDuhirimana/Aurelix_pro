@@ -14,7 +14,7 @@ import {
   ImageStyle,
   ImageBackground
 } from 'react-native';
-import { ArrowLeft, Play, Paperclip, Mic, Send } from 'lucide-react-native';
+import { ChevronLeft, Play, Paperclip, Mic, Send } from 'lucide-react-native';
 
 // Define TypeScript interfaces for data structures
 interface Message {
@@ -44,7 +44,7 @@ const simulateBackendResponse = (inputText: string): Promise<Message> => {
         sender: 'ai',
         timestamp: new Date(),
       });
-    }, 1500);
+    }, 3500);
   });
 };
 
@@ -151,10 +151,10 @@ const AIScreen = () => {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton}>
-            <ArrowLeft size={24} color="#171725" />
+            <ChevronLeft size={24} color="#171725" />
           </TouchableOpacity>
           <Text style={styles.title}>AI pitch coach</Text>
-          <View style={styles.placeholder} />
+          {/* <View style={styles.placeholder} /> */}
         </View>
 
         {/* Chat content */}
@@ -168,6 +168,7 @@ const AIScreen = () => {
         >
           {/* Video thumbnail */}
           <VideoPlayer 
+            id='1'
             videoUrl="https://example.com/video.mp4" 
             thumbnailUrl="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/InveConnect-6sTve3hGqyi1Cm4zpGjDrR09Tw5RbP.png#crop=400,200,700,400"
           />
@@ -217,7 +218,6 @@ const AIScreen = () => {
   );
 };
 
-// Styles remain unchanged, assuming they're defined in a `styles` object as before.
 
 export default AIScreen;
 
@@ -225,7 +225,7 @@ export default AIScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F9F9F9',
   },
   container: {
     flex: 1,
@@ -233,11 +233,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    marginTop: 20,
+    marginBottom: 120,
+    gap: 10,
   },
   backButton: {
     width: 40,
@@ -246,13 +246,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
+    fontFamily: 'Inter-Variable',
     fontSize: 20,
-    fontWeight: '600',
-    color: '#171725',
+    fontWeight: '700',
+    color: '#221F1F',
   },
-  placeholder: {
-    width: 40,
-  },
+  // placeholder: {
+  //   width: 40,
+  // },
   chatContainer: {
     flex: 1,
   },
@@ -324,14 +325,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
   },
   inputWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#FBFBFB',
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 8,
