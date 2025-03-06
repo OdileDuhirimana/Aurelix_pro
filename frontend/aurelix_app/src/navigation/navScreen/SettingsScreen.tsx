@@ -177,13 +177,11 @@ const SettingsScreen = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
-          style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="chevron-back" size={24} color="#000000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
-        <View style={styles.headerRight} />
       </View>
       
       {/* Settings List */}
@@ -241,13 +239,13 @@ const SettingsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F9F9F9',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F9F9F9',
   },
   loadingText: {
     marginTop: 10,
@@ -280,26 +278,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
-    height: 60,
-  },
-  backButton: {
-    padding: 8,
-    width: 40,
+    paddingVertical: 12,
+    marginTop: 20,
+    marginBottom: 10,
+    gap: 20,
   },
   headerTitle: {
+    fontFamily: 'Inter-Variable',
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  headerRight: {
-    width: 40,
+    fontWeight: '700',
+    color: '#221F1F',
   },
   scrollView: {
     flex: 1,
+    paddingHorizontal: 20,
   },
   settingsContainer: {
     paddingTop: 20,
@@ -307,8 +302,10 @@ const styles = StyleSheet.create({
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E4E4E5'
   },
   settingIconContainer: {
     width: 30,
@@ -319,7 +316,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingTitle: {
-    fontSize: 16,
+    fontSize: 12,
+    fontWeight: 500,
     color: '#000000',
   },
   settingAction: {

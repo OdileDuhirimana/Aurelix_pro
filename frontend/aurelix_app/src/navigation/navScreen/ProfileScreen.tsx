@@ -30,6 +30,7 @@ import {
 } from 'lucide-react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
+import { ChevronLeft } from 'lucide-react-native';
 
 // Define TypeScript interfaces for data structures
 interface UserProfile {
@@ -529,11 +530,11 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               source={{ uri: profile.avatar }} 
               style={styles.profileImage}
             />
-            {isCurrentUser && (
+            {/* {isCurrentUser && (
               <View style={styles.editProfileImageOverlay}>
                 <Text style={styles.editProfileImageText}>Edit</Text>
               </View>
-            )}
+            )} */}
           </TouchableOpacity>
           
           <Text style={styles.profileName}>{profile.name}</Text>
@@ -550,7 +551,6 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                 {isEditing ? (
                   <>
                     <TouchableOpacity 
-                      style={[styles.editButton, styles.saveButton]}
                       onPress={handleSaveProfile}
                       disabled={isSaving}
                     >
@@ -640,14 +640,16 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
       
       {/* Header */}
       <View style={styles.header}>
+        <View style={styles.subhead}>
         <TouchableOpacity 
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <ArrowLeft size={24} color="#171725" />
+          <ChevronLeft size={24} color="#171725" />
         </TouchableOpacity>
         
         <Text style={styles.headerTitle}>Profile</Text>
+        </View>
         
         <TouchableOpacity 
           style={styles.settingsButton}
@@ -673,7 +675,10 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F9F9F9',
+  },
+  container: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -681,8 +686,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    marginTop: 20,
+  },
+  subhead:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   backButton: {
     width: 40,
@@ -691,9 +700,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
+    fontFamily: "Inter-Variable",
     fontSize: 20,
-    fontWeight: '600',
-    color: '#171725',
+    fontWeight: "700",
+    color: "#221F1F",
   },
   settingsButton: {
     width: 40,
@@ -739,15 +749,17 @@ const styles = StyleSheet.create({
   },
   profileHeader: {
     alignItems: 'center',
-    paddingVertical: 24,
+    marginBottom: 40,
   },
   profileImageContainer: {
     position: 'relative',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 90,
+    height: 90,
+    borderRadius: "50%",
     marginBottom: 16,
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#00A86B',
   },
   profileImage: {
     width: '100%',
@@ -769,66 +781,66 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   profileName: {
-    fontSize: 24,
+    fontSize: 18,
+    fontFamily: 'Inter-Variable',
     fontWeight: '700',
     color: '#171725',
     marginBottom: 4,
   },
   profileActiveSince: {
-    fontSize: 14,
-    color: '#737373',
+    fontSize: 10,
+    fontFamily: 'Inter-Variable',
+    fontWeight: 300,
+    color: '#221F1F99',
   },
   section: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    paddingHorizontal: 30,
+    // paddingVertical: 16,
+    // borderBottomWidth: 1,
+    // borderBottomColor: '#f0f0f0',
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '600',
     color: '#171725',
+    marginBottom: 16,
+    marginTop: 20,
   },
   editButtonsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   editButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    backgroundColor: '#f0f0f0',
+    marginBottom: 15,
   },
   editButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
     color: '#171725',
     marginLeft: 4,
   },
-  saveButton: {
-    backgroundColor: '#00a86b',
-  },
   saveButtonText: {
-    fontSize: 14,
+    fontSize: 1,
     fontWeight: '500',
-    color: '#ffffff',
+    color: '#00a86b',
+    marginBottom: 15,
   },
   infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
-    marginBottom: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 20,
+    marginBottom: 4,
   },
   infoIconContainer: {
     width: 24,
@@ -838,18 +850,20 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   infoText: {
-    fontSize: 16,
+    fontSize: 12,
+    fontFamily: 'Inter-Variable',
+    fontWeight: 400,
     color: '#171725',
     flex: 1,
   },
   utilityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
-    marginBottom: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 20,
+    marginBottom: 4,
   },
   activeUtilityItem: {
     backgroundColor: '#00a86b',
@@ -862,7 +876,9 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   utilityText: {
-    fontSize: 16,
+    fontSize: 12,
+    fontFamily: 'Inter-Variable',
+    fontWeight: 400,
     color: '#171725',
     flex: 1,
   },
@@ -874,39 +890,7 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 80,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    paddingVertical: 8,
-    backgroundColor: '#ffffff',
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    position: 'relative',
-  },
-  activeIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    width: 24,
-    height: 2,
-    backgroundColor: '#00a86b',
-  },
-  aiNavItem: {
-    position: 'relative',
-  },
-  crownBadge: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    padding: 2,
-  },
+  }
 });
 
 export default ProfileScreen;

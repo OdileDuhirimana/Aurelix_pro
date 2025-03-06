@@ -1,27 +1,15 @@
 "use client"
 
 import React, { useState, useCallback, useEffect } from "react"
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native"
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native"
 import { Feather } from "@expo/vector-icons"
 import CustomInput from "../components/CustomInput"
 import { useNavigation } from "@react-navigation/native"
-import * as WebBrowser from "expo-web-browser";
+import * as WebBrowser from "expo-web-browser"
 import * as Google from "expo-auth-session/providers/google"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
-
-const androidClientId = "995334592785-9tre585q3mr7a3m8bled0u7qnhfnju2t.apps.googleusercontent.com"
-const iosClientId = "995334592785-g5q6kcuicmh8k27ogepntone1u6lfv6k.apps.googleusercontent.com"
-const webClientId = "995334592785-n248qk2a880kgvf049avclnqaj3hacbf.apps.googleusercontent.com"
-
-
-WebBrowser.maybeCompleteAuthSession();
-
-const config = {
-  androidClientId,
-  iosClientId,
-  webClientId,
-}
+WebBrowser.maybeCompleteAuthSession()
 
 const LoginScreen: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -33,24 +21,58 @@ const LoginScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const navigation = useNavigation()
 
-  // Debounced form submission to prevent spamming requests
+  const [userInfo, setUserInfo] = React.useState(null)
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: "323596051383-oharki8qb0a9bupb565hdg6qq42hg6ug.apps.googleusercontent.com",
+    iosClientId: "323596051383-9hho4affs38pd97jv7ljipslok0ces3r.apps.googleusercontent.com",
+    webClientId: "323596051383-4npuru6680eodcn8nt844vgjoma378p8.apps.googleusercontent.com",
+    redirectUri: "exp://10.12.74.144:8081/--/", 
+  })
+
+  React.useEffect(() => {
+    handleSignInWithGoogle()
+  }, [response])
+
+  async function handleSignInWithGoogle() {
+    const user = await AsyncStorage.getItem("@user")
+
+    if (!user) {
+      if (response?.type === "success") {
+        await getUserInfo(response.authentication.accessToken)
+      }
+    } else {
+      setUserInfo(JSON.parse(user))
+    }
+  }
+
+  const getUserInfo = async (token: string) => {
+    if (!token) return
+    try {
+      const response = await fetch("https://www.googleapis.com/userinfo/v2/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const user = await response.json()
+      await AsyncStorage.setItem("@user", JSON.stringify(user))
+      setUserInfo(user)
+    } catch (error) {
+      Alert.alert("Error", "Failed to fetch user info. Please try again.")
+    }
+  }
+
   const handleSubmit = useCallback(async () => {
     if (!formData.name || !formData.password) {
       setError("Both fields are required.")
       return
     }
 
-    setError(null)  // Reset error message
-
+    setError(null) // Reset error message
     setLoading(true)
 
     try {
-      // Simulating an API request
       const response = await simulateBackendRequest(formData)
-
       if (response.success) {
         console.log("Form submitted:", formData)
-        navigation.navigate('Home' as never)
+        navigation.navigate("Home" as never)
       } else {
         setError("Invalid credentials.")
       }
@@ -62,7 +84,6 @@ const LoginScreen: React.FC = () => {
   }, [formData, navigation])
 
   const simulateBackendRequest = (data: { name: string; password: string }) => {
-    // Simulate a successful login or failure response after 2 seconds
     return new Promise<{ success: boolean }>((resolve) => {
       setTimeout(() => {
         if (data.name === "admin" && data.password === "admin123") {
@@ -73,33 +94,6 @@ const LoginScreen: React.FC = () => {
       }, 2000)
     })
   }
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: androidClientId,
-    iosClientId: iosClientId,
-    webClientId: webClientId,
-  });
-  
-  useEffect(() => {
-    if (response?.type === "success") {
-      const { authentication } = response;
-      handleGoogleSignIn(authentication?.accessToken);
-    }
-  }, [response]);
-  
-  const handleGoogleSignIn = async (token: string | undefined) => {
-    if (!token) return;
-    
-    const userInfoResponse = await fetch("https://www.googleapis.com/userinfo/v2/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-  
-    const user = await userInfoResponse.json();
-    await AsyncStorage.setItem("user", JSON.stringify(user));
-    console.log("User Info:", user);
-    navigation.navigate("Home" as never);
-  };
-  
 
   return (
     <View style={styles.container}>
@@ -138,7 +132,7 @@ const LoginScreen: React.FC = () => {
           {error && <Text style={styles.errorText}>{error}</Text>}
 
           {/* Forgot Password Link */}
-          <TouchableOpacity style={styles.forgotPassword} onPress={() => navigation.navigate('ForgotPassword' as never)}>
+          <TouchableOpacity style={styles.forgotPassword} onPress={() => navigation.navigate("ForgotPassword" as never)}>
             <Text style={styles.forgotPasswordText}>Forgot password?</Text>
           </TouchableOpacity>
 
@@ -150,6 +144,8 @@ const LoginScreen: React.FC = () => {
               <Text style={styles.loginButtonText}>Login</Text>
             )}
           </TouchableOpacity>
+
+          <Text>{JSON.stringify(userInfo)}</Text>
 
           {/* Sign Up Link */}
           <View style={styles.signUpContainer}>
@@ -291,4 +287,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default LoginScreen;
+export default LoginScreen

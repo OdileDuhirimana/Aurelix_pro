@@ -12,9 +12,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ImageStyle,
-  ImageBackground
+  ImageBackground,
+  Animated,
+  Easing
 } from 'react-native';
 import { ChevronLeft, Play, Paperclip, Mic, Send } from 'lucide-react-native';
+import Loader from 'react-native-three-dots';
 
 // Define TypeScript interfaces for data structures
 interface Message {
@@ -58,7 +61,7 @@ const MessageBubble = ({ message }: { message: Message }) => {
         isUser ? styles.userBubble : styles.aiBubble
       ]}
     >
-      <Text style={styles.messageText}>{message.text}</Text>
+      <Text style={isUser? styles.messageTextUser : styles.messageText}>{message.text}</Text>
     </View>
   );
 };
@@ -177,7 +180,7 @@ const AIScreen = () => {
         {/* Loading indicator */}
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>AI is thinking...</Text>
+          <Loader color='#00a86b' speed={150}/>
           </View>
         )}
 
@@ -236,7 +239,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginTop: 20,
-    marginBottom: 120,
     gap: 10,
   },
   backButton: {
@@ -295,13 +297,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   userBubble: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#f0f0f0',
+    alignSelf: 'flex-end',
+    backgroundColor: '#00a86b',
     borderBottomLeftRadius: 4,
   },
   aiBubble: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#00a86b',
+    alignSelf: 'flex-start',
+    backgroundColor: '#f0f0f0',
     borderBottomRightRadius: 4,
   },
   messageText: {
@@ -309,16 +311,28 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: '#171725',
   },
+  messageTextUser: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: '#ffffff',
+  },
   loadingContainer: {
-    alignSelf: 'flex-end',
-    padding: 8,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: 16,
     backgroundColor: '#f0f0f0',
-    marginBottom: 12,
+    padding: 12,
+    margin: 20,
   },
   loadingText: {
     fontSize: 14,
     color: '#737373',
+  },
+  dots: {
+    fontSize: 14,
+    color: '#737373',
+    marginLeft: 4,
   },
   inputContainer: {
     flexDirection: 'row',

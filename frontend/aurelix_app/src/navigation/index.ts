@@ -122,4 +122,31 @@ export interface Investor {
     isActive?: boolean;
   }
 
+  // Define TypeScript interfaces for data structures
+  export interface Investor2 {
+    id: string;
+    name: string;
+    profileImage: string;
+    investmentCount: number;
+    industry: string;
+    location: string;
+    bio?: string;
+    socialLinks?: {
+      linkedin?: string;
+      twitter?: string;
+    };
+  }
   
+  export interface InvestorProfileScreenNavigationProp {
+    navigate: (screen: string, params?: any) => void;
+    goBack: () => void;
+  }
+  
+  export interface Props {
+    navigation: InvestorProfileScreenNavigationProp;
+    route: {
+      params: {
+        investorId: string;
+      };
+    };
+  }

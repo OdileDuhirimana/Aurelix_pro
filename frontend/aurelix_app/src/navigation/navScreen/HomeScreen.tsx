@@ -52,6 +52,71 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [showFilterPopup, setShowFilterPopup] = useState<boolean>(false)
   const [showSortPopup, setShowSortPopup] = useState<boolean>(false)
   const [selectedSortOption, setSelectedSortOption] = useState<string | null>(null)
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+  
+
+    // Add debounce effect
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedSearchQuery(searchQuery.trim().toLowerCase());
+      }, 500);
+  
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [searchQuery]);
+  
+    // Update effect dependencies
+    useEffect(() => {
+      loadInvestors();
+    }, [activeRegion, selectedSortOption, debouncedSearchQuery]);
+  
+    // Modified loadInvestors function
+    const loadInvestors = async () => {
+      try {
+        setIsLoading(true);
+        let data = await fetchInvestors(activeRegion, undefined, selectedSortOption, debouncedSearchQuery);
+        
+        // Client-side fallback filtering
+        if (debouncedSearchQuery) {
+          data = data.filter(investor => {
+            const searchLower = debouncedSearchQuery.toLowerCase();
+            return (
+              investor.name.toLowerCase().includes(searchLower)
+            );
+          });
+        }
+  
+        // Client-side sorting fallback
+        if (selectedSortOption) {
+          const sortOption = sortOptions.find(opt => opt.id === selectedSortOption);
+          if (sortOption) {
+            data = [...data].sort((a, b) => {
+              const valA = a[sortOption.field as keyof Investor] || '';
+              const valB = b[sortOption.field as keyof Investor] || '';
+              return sortOption.direction === 'asc' 
+                ? valA.localeCompare(valB) 
+                : valB.localeCompare(valA);
+            });
+          }
+        }
+  
+        setInvestors(data);
+      } catch (error) {
+        console.error("Error loading investors:", error);
+        setInvestors([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    // Add abort controller for API calls
+    useEffect(() => {
+      const abortController = new AbortController();
+      loadData();
+      return () => abortController.abort();
+    }, []);
+  
 
   // Load initial data
   useEffect(() => {
@@ -85,14 +150,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     }
   }, [])
 
-  const loadInvestors = async () => {
-    try {
-      const data = await fetchInvestors(activeRegion, undefined, selectedSortOption, searchQuery)
-      setInvestors(data)
-    } catch (error) {
-      console.error("Error loading investors:", error)
-    }
-  }
+  // const loadInvestors = async () => {
+  //   try {
+  //     const data = await fetchInvestors(activeRegion, undefined, selectedSortOption, searchQuery)
+  //     setInvestors(data)
+  //   } catch (error) {
+  //     console.error("Error loading investors:", error)
+  //   }
+  // }
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true)
@@ -237,6 +302,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#00a86b"]} />
         }
+        showsVerticalScrollIndicator={false} // Hide vertical scrollbar
       />
 
       <FilterPopup
