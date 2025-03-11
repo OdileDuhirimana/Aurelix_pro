@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ChevronLeft } from 'lucide-react-native';
 
 // Document type definition
 type DocumentStatus = 'completed' | 'in-progress' | 'error' | 'pending';
@@ -40,38 +41,44 @@ const BusinessDocumentsScreen = ({ navigation }) => {
           setDocuments([
             {
               id: '1',
+              title: '3D Model of Product',
+              description: 'A 3D model of your product for investors to get AR view of your product',
+              status: 'completed',
+            },
+            {
+              id: '2',
               title: 'Certificate of Incorporation',
               description: 'Legal Proof that a business is officially registered',
               status: 'completed',
             },
             {
-              id: '2',
+              id: '3',
               title: 'Business Plan',
               description: 'Mission, market opportunity and business model',
               status: 'completed',
             },
             {
-              id: '3',
+              id: '4',
               title: 'Pitch Deck',
               description: 'Presentation of key business details',
               status: 'in-progress',
               progress: 90,
             },
             {
-              id: '4',
+              id: '5',
               title: 'Investment Proposal',
               description: 'Founding amount needed and how it will be used.',
               status: 'in-progress',
               progress: 60,
             },
             {
-              id: '5',
+              id: '6',
               title: 'Financial Statements',
               description: 'Balance sheet, Income and cash flow statement.',
               status: 'error',
             },
             {
-              id: '6',
+              id: '7',
               title: 'Legal Documents',
               description: 'Business licenses, shareholder agreements and intellectual property rights.',
               status: 'error',
@@ -109,7 +116,7 @@ const BusinessDocumentsScreen = ({ navigation }) => {
       case 'completed':
         return (
           <View style={styles.statusCompleted}>
-            <Ionicons name="checkmark" size={20} color="#ffffff" />
+            <Ionicons name="checkmark" size={15} color="#ffffff"  />
           </View>
         );
       case 'in-progress':
@@ -129,7 +136,7 @@ const BusinessDocumentsScreen = ({ navigation }) => {
       case 'error':
         return (
           <View style={styles.statusError}>
-            <Ionicons name="alert" size={20} color="#ffffff" />
+            <Ionicons name="alert" size={15} color="#ffffff" />
           </View>
         );
       default:
@@ -178,13 +185,12 @@ const BusinessDocumentsScreen = ({ navigation }) => {
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#000000" />
+      <View style={styles.headerTitleContainer}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <ChevronLeft size={24} color="#171725" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Business Documents</Text>
+        </View>
         <TouchableOpacity 
           style={styles.settingsButton}
           onPress={() => navigation.navigate('Settings')}
@@ -195,6 +201,13 @@ const BusinessDocumentsScreen = ({ navigation }) => {
       
       {/* Main Content */}
       <ScrollView style={styles.scrollView}>
+        <View style={styles.uploadArea}>
+                <Ionicons name="cloud-upload-outline" size={48} color="#00a86b" />
+                <Text style={styles.uploadText}>
+                  Drop File Here or Browse
+                </Text>
+                <Text style={styles.supportedFormats}>Supports png, jpg, pdf</Text>
+              </View>
         <View style={styles.contentContainer}>
           <Text style={styles.introText}>
             Upload the following documents to verify your business eligibility.
@@ -214,8 +227,6 @@ const BusinessDocumentsScreen = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
-      
-      {/* Note: Bottom navigation is assumed to be provided elsewhere */}
     </SafeAreaView>
   );
 };
@@ -223,13 +234,13 @@ const BusinessDocumentsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#F9F9F9",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: "#F9F9F9",
   },
   loadingText: {
     marginTop: 10,
@@ -240,7 +251,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: "#F9F9F9",
     padding: 20,
   },
   errorText: {
@@ -261,36 +272,68 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  header: {
-    flexDirection: 'row',
+  headerTitleContainer:{
+    flexDirection: "row",
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 10,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    height: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f9f9f9',
+    paddingVertical: 12,
+    marginTop: 20,
+    marginBottom: 8,
+    gap: 10,
   },
   backButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000000',
+    fontFamily: "Inter-Variable",
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#221F1F",
   },
   settingsButton: {
     padding: 8,
   },
   scrollView: {
     flex: 1,
+    paddingHorizontal: 20,
+  },
+  uploadArea: {
+    borderWidth: 2,
+    borderColor: "#E4E4E5",
+    borderStyle: "dashed",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+    height: 200,
+    backgroundColor: "#E4E4E580",
+  },
+  uploadText: {
+    fontSize: 15,
+    fontWeight: "500",
+    marginTop: 10,
+  },
+  supportedFormats: {
+    color: "#6b7280",
+    marginTop: 5,
   },
   contentContainer: {
-    padding: 16,
+    // padding: 20,
   },
   introText: {
-    fontSize: 18,
+    fontSize: 13,
+    fontWeight: "300",
     color: '#221f1f',
-    marginBottom: 24,
   },
   documentsList: {
     marginTop: 10,
@@ -299,7 +342,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
+    marginVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#f9f9f9',
   },
@@ -308,27 +351,32 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   documentTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
     color: '#000000',
     marginBottom: 4,
   },
   documentDescription: {
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: "400",
     color: '#221f1f',
   },
   statusCompleted: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#00a86b',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  check:{
+    fontSize: 15,
+    fontWeight: "700",
+  },
   statusError: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#ff3b30',
     justifyContent: 'center',
     alignItems: 'center',
@@ -339,8 +387,8 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     width: '100%',
-    height: 8,
-    backgroundColor: '#c2c2c2',
+    height: 7,
+    backgroundColor: '#E4E4E5',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -349,8 +397,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#00a86b',
   },
   progressText: {
-    marginTop: 4,
-    fontSize: 14,
+    marginTop: 2,
+    fontSize: 12,
     color: '#221f1f',
   },
   uploadButton: {

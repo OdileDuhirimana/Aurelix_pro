@@ -1,274 +1,536 @@
-"use client"
-
-import { useState, useEffect } from "react"
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
+  Image,
   TouchableOpacity,
-  FlatList,
+  StyleSheet,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator,
-  RefreshControl,
-} from "react-native"
+  FlatList,
+  Animated,
+  Platform,
+  Pressable,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import GradientText from '../../components/GradientText';
 
-// Define notification types
-interface Notification {
-  id: string
-  type: "transaction" | "system" | "alert" | "update"
-  title: string
-  message: string
-  timestamp: string
-  isRead: boolean
-  actionUrl?: string
-  metadata?: Record<string, any>
-}
+// Mock data for notifications - would be replaced with API data
+const INITIAL_NOTIFICATIONS = [
+  {
+    id: '1',
+    type: 'interest',
+    user: {
+      id: 'u1',
+      name: 'John Doe',
+      avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+      location: 'USA',
+    },
+    message: 'John Doe from USA is interested in your profile, you can talk!!',
+    timestamp: new Date(new Date().setHours(new Date().getHours() - 1)),
+    read: true,
+    section: 'recent',
+  },
+  {
+    id: '2',
+    type: 'message',
+    user: {
+      id: 'u2',
+      name: 'Mark Robinson',
+      avatar: 'https://randomuser.me/api/portraits/men/41.jpg',
+    },
+    message: 'Mark Robinson messaged you',
+    timestamp: new Date(new Date().setHours(new Date().getHours() - 2)),
+    read: false,
+    section: 'recent',
+    time: '9:00',
+  },
+  {
+    id: '3',
+    type: 'message',
+    user: {
+      id: 'u3',
+      name: 'John Doe',
+      avatar: 'https://randomuser.me/api/portraits/men/68.jpg',
+      title: 'CEO of Braliirwa',
+      location: 'Rwanda',
+    },
+    message: 'John Doe, CEO of Braliirwa from Rwanda has messaged you.',
+    timestamp: new Date(new Date().setHours(new Date().getHours() - 5)),
+    read: true,
+    section: 'earlier',
+    time: '7:00',
+  },
+  {
+    id: '4',
+    type: 'system',
+    system: {
+      name: 'Aurelix',
+      logo: 'aurelix',
+    },
+    title: 'You have not uploaded all documents',
+    message: 'You are missing financial statement and the 3D Model of your product',
+    timestamp: new Date(new Date().setDate(new Date().getDate() - 1)),
+    read: true,
+    section: 'yesterday',
+    time: '14:30',
+  },
+  {
+    id: '5',
+    type: 'system',
+    system: {
+      name: 'Aurelix',
+      logo: 'aurelix',
+    },
+    title: 'Welcome',
+    message: "Thank you for registering with Aurelix. Let's get started to making your business a success.",
+    timestamp: new Date(new Date().setDate(new Date().getDate() - 1)),
+    read: true,
+    section: 'yesterday',
+    time: '9:00',
+  },
+];
 
 const NotificationsScreen = ({ navigation }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const menuAnimation = useRef(new Animated.Value(0)).current;
+  
+  // Filter notifications based on unread status if needed
+  const displayedNotifications = showUnreadOnly 
+    ? notifications.filter(n => !n.read) 
+    : notifications;
 
-  const sampleNotifications: Notification[] = [
-    {
-      id: "1",
-      type: "transaction",
-      title: "Payment Received",
-      message: "You've received $250.00 from John Doe",
-      timestamp: "2h ago",
-      isRead: false,
-      metadata: { amount: 250, currency: "USD" }
-    },
-    {
-      id: "2",
-      type: "update",
-      title: "App Update Available",
-      message: "New version 2.3.0 is ready to download",
-      timestamp: "5h ago",
-      isRead: true
-    },
-    {
-      id: "3",
-      type: "alert",
-      title: "Security Alert",
-      message: "New login from unknown device detected",
-      timestamp: "1d ago",
-      isRead: false,
-      actionUrl: "security-settings"
-    },
-    {
-      id: "4",
-      type: "system",
-      title: "System Maintenance",
-      message: "Scheduled maintenance on June 25th 2:00-4:00 AM UTC",
-      timestamp: "3d ago",
-      isRead: true
+  // Group notifications by section
+  const groupedNotifications = displayedNotifications.reduce((groups, notification) => {
+    const section = notification.section;
+    if (!groups[section]) {
+      groups[section] = [];
     }
-  ]
-  const fetchNotifications = async (isRefreshing = false) => {
-    try {
-      if (!isRefreshing) {
-        setLoading(true)
-      }
+    groups[section].push(notification);
+    return groups;
+  }, {});
 
-      // TODO: Replace with actual API call
-      // const response = await api.getNotifications();
-      // setNotifications(response.data);
+  // Create sections array for the SectionList
+  const sections = [
+    { title: '', data: groupedNotifications.recent || [] },
+    { title: 'Earlier Today', data: groupedNotifications.earlier || [] },
+    { title: 'Yesterday', data: groupedNotifications.yesterday || [] },
+  ].filter(section => section.data.length > 0);
 
-      // Simulating API response delay
-      setTimeout(() => {
-        // For demo purposes, we'll always show an empty state
-        setNotifications([])
-        setLoading(false)
-        setRefreshing(false)
-      }, 1500)
-    } catch (err) {
-      setError("Failed to load notifications")
-      setLoading(false)
-      setRefreshing(false)
+  // Toggle menu visibility with animation
+  const toggleMenu = () => {
+    if (menuVisible) {
+      Animated.timing(menuAnimation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start(() => setMenuVisible(false));
+    } else {
+      setMenuVisible(true);
+      Animated.timing(menuAnimation, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
     }
-  }
+  };
 
-  useEffect(() => {
-    fetchNotifications()
-  }, []) //Fixed: Added empty dependency array to useEffect
+  // Handle marking all as read
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, read: true })));
+    toggleMenu();
+  };
 
-  const onRefresh = () => {
-    setRefreshing(true)
-    fetchNotifications(true)
-  }
+  // Handle showing only unread notifications
+  const toggleUnreadOnly = () => {
+    setShowUnreadOnly(!showUnreadOnly);
+    toggleMenu();
+  };
 
-  const handleMenuPress = () => {
-    // TODO: Implement menu options
-    console.log("Menu pressed")
-  }
+  // Handle deleting all notifications
+  const deleteAll = () => {
+    setNotifications([]);
+    toggleMenu();
+  };
 
-  // Render empty state
-  const renderEmptyState = () => {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>Notifications</Text>
-        <Text style={styles.emptyMessage}>When you receive notifications, they will appear here.</Text>
-      </View>
-    )
-  }
+  // Handle marking a single notification as read
+  const markAsRead = (id) => {
+    setNotifications(
+      notifications.map(n => n.id === id ? { ...n, read: true } : n)
+    );
+  };
 
-  if (loading && !refreshing) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.iconText}>{"<"}</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Notifications</Text>
-          <TouchableOpacity style={styles.menuButton} onPress={handleMenuPress}>
-            <Text style={styles.iconText}>{"..."}</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#00A86B" />
-        </View>
-      </SafeAreaView>
-    )
-  }
+  // Handle notification press
+  const handleNotificationPress = (notification) => {
+    // Mark as read when pressed
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
+    
+    // Navigate based on notification type
+    switch (notification.type) {
+      case 'message':
+        // Navigate to chat with this user
+        console.log(`Navigate to chat with ${notification.user.name}`);
+        // navigation.navigate('Chat', { userId: notification.user.id });
+        break;
+      case 'interest':
+        // Navigate to profile
+        console.log(`Navigate to profile of ${notification.user.name}`);
+        // navigation.navigate('Profile', { userId: notification.user.id });
+        break;
+      case 'system':
+        if (notification.title.includes('documents')) {
+          // Navigate to document upload
+          console.log('Navigate to document upload');
+          // navigation.navigate('Documents');
+        }
+        break;
+      default:
+        break;
+    }
+  };
 
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.iconText}>{"<"}</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Notifications</Text>
-          <TouchableOpacity style={styles.menuButton} onPress={handleMenuPress}>
-            <Text style={styles.iconText}>{"..."}</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => {
-              setError(null)
-              fetchNotifications()
-            }}
-          >
-            <Text style={styles.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    )
-  }
+  // Render notification item based on type
+  const renderNotificationItem = ({ item }) => {
+    // Common timestamp display
+    const timeDisplay = item.time || formatTime(item.timestamp);
+    
+    // User notification (message or interest)
+    if (item.type === 'message' || item.type === 'interest') {
+      return (
+        <TouchableOpacity 
+          style={styles.notificationCard}
+          onPress={() => handleNotificationPress(item)}
+          activeOpacity={0.7}
+        >
+          <Image source={{ uri: item.user.avatar }} style={styles.avatar} />
+          
+          <View style={styles.notificationContent}>
+            <View style={styles.notificationHeader}>
+              <Text style={styles.notificationTitle}>{item.user.name}</Text>
+            </View>
+            <Text style={styles.notificationMessage} numberOfLines={2}>
+              {item.message}
+            </Text>
+          </View>
+          <View style={styles.timeContainer}>
+                <Text style={styles.timeText}>{timeDisplay}</Text>
+                {!item.read && <View style={styles.unreadDot} />}
+          </View>
+        </TouchableOpacity>
+      );
+    }
+    
+    // System notification
+    if (item.type === 'system') {
+      return (
+        <TouchableOpacity 
+          style={styles.notificationCard}
+          onPress={() => handleNotificationPress(item)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.systemLogoContainer}>
+          <GradientText 
+        text="Aurelix" 
+        colors={[
+          "rgba(252, 229, 105, 0.691272)", 
+          "rgba(253, 226, 77, 0.631532)", 
+          "rgba(254, 222, 50, 0.573927)", 
+          "rgba(251, 236, 151, 0.789524)", 
+          "#00A86B", 
+          "rgba(255, 215, 0, 0.466667)"
+        ]}
+        locations={[0.2375, 0.2375, 0.2375, 0.3484, 0.5092, 0.6888]}
+        start={{ x: 1.0, y: 0.0 }} 
+        end={{ x: 0.0, y: 1.0 }}  
+        style={styles.systemLogoBlack}
+      />
+            {/* <Text style={styles.systemLogoBlack}>Au</Text>
+            <Text style={styles.systemLogoGold}>re</Text>
+            <Text style={styles.systemLogoBlack}>lix</Text> */}
+          </View>
+          
+          <View style={styles.notificationContent}>
+            <View style={styles.notificationHeader}>
+              <Text style={styles.notificationTitle}>{item.title}</Text>
+              <Text style={styles.timeText}>{timeDisplay}</Text>
+            </View>
+            <Text style={styles.notificationMessage} numberOfLines={2}>
+              {item.message}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+    
+    return null;
+  };
+
+  // Format timestamp to display time
+  const formatTime = (timestamp) => {
+    const hours = timestamp.getHours();
+    const minutes = timestamp.getMinutes();
+    return `${hours}:${minutes < 10 ? '0' + minutes : minutes}`;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <StatusBar barStyle="dark-content" />
+      
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.iconText}>{"<"}</Text>
+        <View style={styles.headerTitleContainer}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back" size={24} color="#333" />
         </TouchableOpacity>
+        
         <Text style={styles.headerTitle}>Notifications</Text>
-        <TouchableOpacity style={styles.menuButton} onPress={handleMenuPress}>
-          <Text style={styles.iconText}>{"..."}</Text>
+        </View>
+        
+        
+        <TouchableOpacity 
+          style={styles.menuButton}
+          onPress={toggleMenu}
+        >
+          <Ionicons name="ellipsis-vertical" size={15} color="#333" />
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={notifications}
-        renderItem={() => null} // We're not rendering any items in this example
-        ListEmptyComponent={renderEmptyState}
-        contentContainerStyle={styles.listContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#000000"]} tintColor="#000000" />
-        }
-      />
+      
+      {/* Dropdown Menu */}
+      {menuVisible && (
+        <Animated.View 
+          style={[
+            styles.menuContainer,
+            {
+              opacity: menuAnimation,
+              transform: [
+                { 
+                  translateY: menuAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-20, 0],
+                  }) 
+                }
+              ]
+            }
+          ]}
+        >
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={markAllAsRead}
+          >
+            <Text style={styles.menuItemTextGreen}>Mark all as read</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={toggleUnreadOnly}
+          >
+            <Text style={styles.menuItemText}>
+              {showUnreadOnly ? 'Show all' : 'Show unread'}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={deleteAll}
+          >
+            <Text style={styles.menuItemText}>Delete all</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
+      
+      {/* Notifications List */}
+      {notifications.length > 0 ? (
+        <FlatList
+          data={sections}
+          keyExtractor={(item, index) => `section-${index}`}
+          renderItem={({ item: section }) => (
+            <View>
+              {section.title ? (
+                <Text style={styles.sectionHeader}>{section.title}</Text>
+              ) : null}
+              <FlatList
+                data={section.data}
+                keyExtractor={(item) => item.id}
+                renderItem={renderNotificationItem}
+                scrollEnabled={false}
+              />
+            </View>
+          )}
+          contentContainerStyle={styles.listContent}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="notifications-off-outline" size={60} color="#CCCCCC" />
+          <Text style={styles.emptyText}>No notifications yet</Text>
+        </View>
+      )}
+      
+      {/* Overlay to close menu when clicking outside */}
+      {menuVisible && (
+        <Pressable  
+          onPress={toggleMenu}
+        />
+      )}
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F9F9F9",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    height: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    paddingVertical: 12,
+    marginTop: 20,
+    marginBottom: 8,
+
+  },
+  headerTitleContainer:{
+    flexDirection: "row",
+    alignItems: 'center',
+    gap: 10,
   },
   backButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#000000",
+    fontFamily: "Inter-Variable",
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#221F1F",
   },
   menuButton: {
-    padding: 8,
+    padding: 5,
   },
-  listContainer: {
-    flexGrow: 1,
+  menuContainer: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 90 : 50 + (StatusBar.currentHeight || 0),
+    right: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 10,
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  menuItem: {
+    // paddingVertical: 10,
+    // paddingHorizontal: 20,
+  },
+  menuItemText: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 13,
+    color: '#333',
+  },
+  menuItemTextGreen: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 13,
+    color: '#00a86b',
+  },
+  listContent: {
+    paddingBottom: 80,
+  },
+  sectionHeader: {
+    fontSize: 16,
+    fontFamily: 'Poppins-SemiBold',
+    color: '#333',
+    marginTop: 25,
+    marginBottom: 15,
+    paddingHorizontal: 20,
+  },
+  notificationCard: {
+    flexDirection: 'row',
+    backgroundColor: '#EEEEEE',
+    borderRadius: 20,
+    padding: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    marginBottom: 10,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginLeft: 5,
+  },
+  systemLogoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  systemLogoBlack: {
+    fontSize: 10,
+    fontFamily: "Poppins-Bold",
+  },
+  systemLogoGold: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#FFD700',
+  },
+  notificationContent: {
+    flex: 1,
+    marginLeft: 10,
+    justifyContent: 'center',
+  },
+  notificationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    
+  },
+  notificationTitle: {
+    fontSize: 11,
+    fontFamily: "Poppins-SemiBold",
+  },
+  timeContainer: {
+    alignItems: 'center',
+    gap: 10,
+  },
+  timeText: {
+    fontSize: 10,
+    fontFamily: "Poppin-Medium",
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#00B074',
+    marginLeft: 5,
+  },
+  notificationMessage: {
+    fontSize: 10,
+    fontFamily: 'Poppins-Regular',
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 80,
   },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#000000",
-    marginBottom: 8,
+  emptyText: {
+    fontSize: 18,
+    color: '#999',
+    marginTop: 10,
   },
-  emptyMessage: {
-    fontSize: 16,
-    color: "#666666",
-    textAlign: "center",
-    maxWidth: 250,
-    lineHeight: 24,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#ff3b30",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  retryButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: "#000000",
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  iconText: {
-    fontSize: 24,
-    color: "#000000",
-  },
-})
+});
 
-export default NotificationsScreen
-
+export default NotificationsScreen;

@@ -150,3 +150,24 @@ export interface Investor {
       };
     };
   }
+
+  // types.ts
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  timestamp: string;
+  status: 'sent' | 'delivered' | 'read' | 'failed';
+  type: 'text' | 'image' | 'file';
+  reactions?: string[];
+  replyTo?: string;
+}
+
+
+export interface Conversation {
+  id: string;
+  participants: string[];
+  lastMessage: Message;
+}

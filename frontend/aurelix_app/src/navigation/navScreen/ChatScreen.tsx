@@ -251,11 +251,14 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
 
       {/* Header */}
       <View style={styles.header}>
+        
+        <View style={styles.headerTitleContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <ChevronLeft size={24} color="#171725" />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>Recents</Text>
+        </View>
+        
 
         <TouchableOpacity
           style={styles.searchButton}
@@ -321,6 +324,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerTitleContainer:{
+    flexDirection: "row",
+    alignItems: 'center',
+    gap: 10,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -328,7 +336,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 8,
     gap: 10,
   },
   backButton: {
@@ -339,13 +347,13 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: "Inter-Variable",
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     color: "#221F1F",
   },
   searchButton: {
-    width: 40,
-    height: 40,
+    width: 30,
+    height: 30,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -362,21 +370,20 @@ const styles = StyleSheet.create({
   },
   conversationsList: {
     flexGrow: 1,
+    marginHorizontal: 12,
     paddingBottom: 16,
   },
   conversationItem: {
     flexDirection: "row",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
   avatarContainer: {
     marginRight: 12,
   },
   avatar: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     borderRadius: 25,
   },
   conversationContent: {
@@ -390,13 +397,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   participantName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
-    color: "#171725",
+    color: "#221F1F",
   },
   timestamp: {
-    fontSize: 14,
-    color: "#737373",
+    fontSize: 12,
+    fontWeight: "400",
+    color: "#221F1FB2",
   },
   messagePreviewContainer: {
     flexDirection: "row",
@@ -405,23 +413,24 @@ const styles = StyleSheet.create({
   },
   messagePreview: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 12,
+    fontWeight: "400",
     color: "#737373",
   },
   unreadMessagePreview: {
     color: "#171725",
   },
   unreadBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: "#00a86b",
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 8,
   },
   unreadCount: {
-    fontSize: 12,
+    fontSize: 9,
     fontWeight: "600",
     color: "#ffffff",
   },

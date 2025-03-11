@@ -106,12 +106,6 @@ const IDVerifyScreen = ({ navigation }) => {
         <Text style={styles.headerTitle}>Verification</Text>
       </View>
       {isLoading? (
-        //   <View style={styles.modalContainer}>
-        //   <View style={styles.modalContent}>
-        //     <ActivityIndicator size={150} color="#00A86B" />
-        //     <Text style={styles.modalText}>Still verifying please wait...</Text>
-        //   </View>
-        // </View>
         <View style={styles.modalContainer}>
     <View style={styles.modalContent}>
       <DotSpinner size={100} color="#00B074"/>

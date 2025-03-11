@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     height: 60,
     paddingBottom: 5,
     paddingTop: 5,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#F9F9F9",
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
   },
