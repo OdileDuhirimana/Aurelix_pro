@@ -6,14 +6,11 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator,
-  Modal,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DotSpinner from '../components/DotSpinner';
 
-// Define the user data type for type safety
+// Types
 interface UserData {
   fullName: string;
   nationality: string;
@@ -23,8 +20,50 @@ interface UserData {
   isVerified: boolean;
 }
 
+interface FieldItemProps {
+  label: string;
+  value: string;
+  isVerified: boolean;
+  onPress?: () => void;
+}
+
+// Reusable components
+const Header = ({ onBack, title }) => (
+  <View style={styles.header}>
+    <TouchableOpacity onPress={onBack}>
+      <Ionicons name="chevron-back" size={24} color="#000" />
+    </TouchableOpacity>
+    <Text style={styles.headerTitle}>{title}</Text>
+  </View>
+);
+
+const FieldItem = ({ label, value, isVerified, onPress }: FieldItemProps) => (
+  <TouchableOpacity 
+    style={styles.fieldContainer} 
+    onPress={onPress}
+    activeOpacity={onPress ? 0.7 : 1}
+  >
+    <Text style={styles.fieldLabel}>{label}</Text>
+    <View style={styles.fieldValueContainer}>
+      <Text style={styles.fieldValue}>{value}</Text>
+      {isVerified && (
+        <View style={styles.checkmarkContainer}>
+          <Ionicons name="checkmark" size={15} color="#fff" />
+        </View>
+      )}
+    </View>
+  </TouchableOpacity>
+);
+
+const LoadingView = () => (
+  <View style={styles.loadingContainer}>
+    <DotSpinner size={100} color="#00B074"/>
+    <Text style={styles.loadingText}>Still verifying please wait...</Text>
+  </View>
+);
+
 const IDVerifyScreen = ({ navigation }) => {
-  // State to store user data (would come from API/params in real app)
+  // State
   const [userData, setUserData] = useState<UserData>({
     fullName: 'MUKARUSINE Rose',
     nationality: 'Rwandese',
@@ -33,11 +72,9 @@ const IDVerifyScreen = ({ navigation }) => {
     dateOfBirth: '30.04.1996',
     isVerified: false,
   });
-
-  const [userAge, setUserAge] = useState<number>(16);
   
   const [isLoading, setIsLoading] = useState(false);
-  const [fieldsVerified, setFieldsVerified] = useState({
+  const [verifiedFields, setVerifiedFields] = useState({
     fullName: true,
     nationality: true,
     idNumber: true,
@@ -45,16 +82,24 @@ const IDVerifyScreen = ({ navigation }) => {
     dateOfBirth: true,
   });
 
-  // This would be replaced with actual API call in production
+  // Toggle field verification status when clicked
+  const toggleFieldVerification = (field: string) => {
+    setVerifiedFields(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  // Handle verification
   const handleVerify = async () => {
     setIsLoading(true);
-    setUserAge(20);
     
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2500));
       
-      // This would be the response from your backend
+      // Simulate backend response
+      const userAge = 20; // This would come from backend
       const verificationSuccessful = true;
       
       if (verificationSuccessful) {
@@ -63,11 +108,8 @@ const IDVerifyScreen = ({ navigation }) => {
           isVerified: true,
         }));
 
-        if(userAge < 18){
-          navigation.navigate('Forbidden')
-        } else{
-          navigation.navigate('ProfileSetup')
-        }
+        // Navigate based on age
+        navigation.navigate(userAge < 18 ? 'Forbidden' : 'ProfileSetup');
       }
     } catch (error) {
       console.error('Verification error:', error);
@@ -77,60 +119,49 @@ const IDVerifyScreen = ({ navigation }) => {
     }
   };
 
-  // Field component for consistent styling
-  const FieldItem = ({ label, value }) => (
-    <View style={styles.fieldContainer}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.fieldValueContainer}>
-        <Text style={styles.fieldValue}>{value}</Text>
-        {fieldsVerified[label.toLowerCase().replace(' ', '')] && (
-          <View style={styles.checkmarkContainer}>
-            <Ionicons name="checkmark" size={15} color="#fff" />
-          </View>
-        )}
-      </View>
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#000" style={styles.loader}/>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Verification</Text>
-      </View>
-      {isLoading? (
-        <View style={styles.modalContainer}>
-    <View style={styles.modalContent}>
-      <DotSpinner size={100} color="#00B074"/>
-      <Text style={styles.modalText}>Still verifying please wait...</Text>
-    </View>
-  </View>
-      ):(
-      <View style={styles.content}>
-      <Text style={styles.title}>Verify Eligibility</Text>
+      <Header 
+        onBack={() => navigation.goBack()} 
+        title="Verification" 
+      />
       
-      <View style={styles.fieldsContainer}>
-        <FieldItem label="Full Name" value={userData.fullName} />
-        <FieldItem label="Nationality" value={userData.nationality} />
-        <FieldItem label="ID Number" value={userData.idNumber} />
-        <FieldItem label="Sex" value={userData.sex} />
-        <FieldItem label="Date of Birth" value={userData.dateOfBirth} />
-      </View>
-      
-      {/* Verify Button */}
-      <TouchableOpacity 
-        style={styles.verifyButton}
-        onPress={handleVerify}>
-          <Text style={styles.verifyButtonText}>Verify</Text>
-      </TouchableOpacity>
-    </View>
+      {isLoading ? (
+        <LoadingView />
+      ) : (
+        <View style={styles.content}>
+          <Text style={styles.title}>Verify Eligibility</Text>
+          
+          <View style={styles.fieldsContainer}>
+            {Object.entries(userData)
+              .filter(([key]) => key !== 'isVerified')
+              .map(([key, value]) => {
+                // Format the label (e.g., "fullName" -> "Full Name")
+                const label = key
+                  .replace(/([A-Z])/g, ' $1')
+                  .replace(/^./, str => str.toUpperCase());
+                
+                return (
+                  <FieldItem 
+                    key={key}
+                    label={label}
+                    value={value}
+                    isVerified={verifiedFields[key]}
+                    onPress={() => toggleFieldVerification(key)}
+                  />
+                );
+              })}
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.verifyButton}
+            onPress={handleVerify}
+          >
+            <Text style={styles.verifyButtonText}>Verify</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </SafeAreaView>
   );
@@ -155,11 +186,8 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Bold",
     fontSize: 18,
   },
- 
   content: {
     flex: 1,
-    // paddingHorizontal: 24,
-    // paddingTop: 20,
   },
   title: {
     fontSize: 25,
@@ -171,7 +199,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   fieldContainer: {
-    width: 334,
+    width: "100%",
+    maxWidth: 334,
     height: 41,
     marginBottom: 24,
   },
@@ -215,28 +244,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "Poppins-Bold",
   },
-  modalContainer: {
-    marginTop: 125,
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
-    alignItems: 'flex-start',
-    backgroundColor: '#F9F9F9',
-  },
-  modalContent: {
-    backgroundColor: '#F9F9F9',
-    padding: 30,
-    borderRadius: 10,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  modalText: {
+  loadingText: {
     marginTop: 50,
     fontFamily: 'Inter-Variable',
     fontSize: 20,
     color: '#221F1FCC',
     fontWeight: '600',
-  },
-  loader:{
-    //To be implemeneted further
   },
 });
 

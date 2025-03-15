@@ -3,65 +3,45 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import GradientText from "../components/GradientText"
 
-
 const WelcomeScreen: React.FC = () => {
   const navigation = useNavigation()
+  
+  const navigateTo = (screen: string) => navigation.navigate(screen as never)
 
   return (
     <View style={styles.container}>
-       <GradientText 
+      <GradientText 
         text="Aurelix" 
         colors={[
-          "rgba(252, 229, 105, 0.691272)", 
-          "rgba(253, 226, 77, 0.631532)", 
-          "rgba(254, 222, 50, 0.573927)", 
-          "rgba(251, 236, 151, 0.789524)", 
+          "rgba(252, 229, 105, 0.69)", 
+          "rgba(253, 226, 77, 0.63)", 
+          "rgba(254, 222, 50, 0.57)", 
+          "rgba(251, 236, 151, 0.79)", 
           "#00A86B", 
-          "rgba(255, 215, 0, 0.466667)"
+          "rgba(255, 215, 0, 0.47)"
         ]}
-        locations={[0.2375, 0.2375, 0.2375, 0.3484, 0.5092, 0.6888]}
-        start={{ x: 1.0, y: 0.0 }} 
-        end={{ x: 0.0, y: 1.0 }}  
+        locations={[0.24, 0.24, 0.24, 0.35, 0.51, 0.69]}
+        start={{ x: 1, y: 0 }} 
+        end={{ x: 0, y: 1 }}  
         style={styles.logo}
       />
       <Text style={styles.title}>Let's get started!</Text>
       <Text style={styles.subtitle}>Here at your service!</Text>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate("Login" as never)}>
+        <TouchableOpacity 
+          style={styles.loginButton} 
+          onPress={() => navigateTo("Login")}
+        >
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.signupButton} onPress={() => navigation.navigate("Signup" as never)}>
+        <TouchableOpacity 
+          style={styles.signupButton} 
+          onPress={() => navigateTo("Signup")}
+        >
           <Text style={styles.signupButtonText}>Sign Up</Text>
         </TouchableOpacity>
-
-        {/* <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("VerifyEligibility" as never)}
-      >
-        <Text>Go to Verification</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("error" as never)}
-      >
-        <Text>Go to Error</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("forbidden" as never)}
-      >
-        <Text>Go to Forbidden</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("profile" as never)}
-      >
-        <Text>Go to Forbidden</Text>
-      </TouchableOpacity> */}
-      
       </View>
     </View>
   )
@@ -84,7 +64,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "Poppins-Bold",
     fontSize: 22,
-    lineHeight: 29.7,
+    lineHeight: 30,
     color: "black",
     marginBottom: 10,
     textAlign: "center",
@@ -106,7 +86,6 @@ const styles = StyleSheet.create({
     height: 55,
     justifyContent: "center",
     alignItems: "center",
-
   },
   loginButtonText: {
     fontFamily: "Poppins-Bold",
@@ -127,17 +106,6 @@ const styles = StyleSheet.create({
     color: "#00a86b",
     fontSize: 16,
   },
-  button: {
-    backgroundColor: "#00a86b",
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 9999,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-  },
 })
 
 export default WelcomeScreen
-

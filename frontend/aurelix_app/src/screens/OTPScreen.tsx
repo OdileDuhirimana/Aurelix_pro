@@ -1,5 +1,4 @@
-import type React from "react";
-import { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -12,29 +11,49 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { RouteProp } from "@react-navigation/native";
+import Header from "../components/header";
 
-// Define navigation stack parameter list type
+// Types
 type RootStackParamList = {
   Verification: { fromScreen?: string };
   NewPassword: undefined;
   Signin: undefined;
   VerifyEligibility: undefined;
-  // Add other routes as needed
 };
 
-// Define the route prop type for the current screen
 type VerificationScreenRouteProp = RouteProp<RootStackParamList, "Verification">;
 
+const OtpInput = ({ 
+  value, 
+  onChange, 
+  onKeyPress, 
+  inputRef 
+}) => (
+  <View style={styles.inputContainer}>
+    <TextInput
+      ref={inputRef}
+      style={styles.input}
+      maxLength={1}
+      value={value}
+      onChangeText={onChange}
+      onKeyPress={onKeyPress}
+      keyboardType="numeric"
+    />
+    {!value && <View style={styles.placeholder} />}
+  </View>
+);
+
 const VerificationScreen: React.FC = () => {
-  const route = useRoute<VerificationScreenRouteProp>(); // Use the correct type here
+  const route = useRoute<VerificationScreenRouteProp>();
   const navigation = useNavigation();
-  const fromScreen = route.params?.fromScreen || ""; // This will now work correctly
+  const fromScreen = route.params?.fromScreen || "";
 
   const [otp, setOtp] = useState(["", "", "", ""]);
-  const [errorMessage, setErrorMessage] = useState<string>(""); // Ensure it's a string
+  const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<Array<TextInput | null>>([]);
 
+  // Handle OTP input change
   const handleChange = useCallback((value: string, index: number) => {
     if (isNaN(Number(value))) return;
 
@@ -42,17 +61,20 @@ const VerificationScreen: React.FC = () => {
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
 
+    // Auto-focus next input
     if (value !== "" && index < 3) {
       inputRefs.current[index + 1]?.focus();
     }
   }, [otp]);
 
+  // Handle backspace key press
   const handleKeyPress = useCallback((e: any, index: number) => {
     if (e.nativeEvent.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   }, [otp]);
 
+  // Verify OTP
   const handleVerify = async () => {
     if (otp.some(digit => digit === "")) {
       setErrorMessage("Please fill all OTP fields");
@@ -60,39 +82,25 @@ const VerificationScreen: React.FC = () => {
     }
   
     setIsLoading(true);
-    setErrorMessage(""); // Clear any previous error message
-  
-    // Simulated backend OTP verification function
-    const simulateBackendOTPVerification = (otp: string[]) => {
-      return new Promise<void>((resolve, reject) => {
-        // Simulate a delay (e.g., network request delay)
-        setTimeout(() => {
-          const correctOtp = ["1", "2", "3", "4"]; // This would be the correct OTP
-          const inputOtp = otp.join("");
-  
-          // Check if the OTP is correct
-          if (inputOtp === correctOtp.join("")) {
-            resolve(); // OTP is correct
-          } else {
-            reject(new Error("Invalid OTP, please try again!")); // OTP is incorrect
-          }
-        }, 2000); // Simulate a 2-second network delay
-      });
-    };
+    setErrorMessage("");
   
     try {
-      await simulateBackendOTPVerification(otp); // Simulate backend verification
-      console.log('fromScreen:', fromScreen);
-      navigation.navigate('VerifyEligibility' as never);
-      // try {
-      //   if (fromScreen === "ForgotPassword") {
-      //     navigation.navigate("NewPassword" as never);
-      //   } else if (fromScreen === "Signup") {
-      //     navigation.navigate("VerifyEligibility" as never);
-      //   }
-      // } catch (error) {
-      //   console.error('Navigation Error:', error);
-      // }
+      // Simulate backend verification
+      await new Promise<void>((resolve, reject) => {
+        setTimeout(() => {
+          const correctOtp = ["1", "2", "3", "4"];
+          otp.join("") === correctOtp.join("") 
+            ? resolve() 
+            : reject(new Error("Invalid OTP, please try again!"));
+        }, 2000);
+      });
+      
+      // Navigate based on fromScreen
+      const destination = fromScreen === "ForgotPassword" 
+        ? "NewPassword" 
+        : "VerifyEligibility";
+      
+      navigation.navigate(destination as never);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred");
     } finally {
@@ -102,12 +110,13 @@ const VerificationScreen: React.FC = () => {
   
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Feather name="chevron-left" size={24} color="#221f1f" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Verification</Text>
+      <View style={styles.headerContainer}>
+      <Header 
+        onBack={() => navigation.goBack()} 
+        title="Verification" 
+      />
       </View>
+     
 
       <View style={styles.content}>
         <View style={styles.titleContainer}>
@@ -117,18 +126,13 @@ const VerificationScreen: React.FC = () => {
 
         <View style={styles.otpContainer}>
           {otp.map((digit, idx) => (
-            <View key={idx} style={styles.inputContainer}>
-              <TextInput
-                ref={(input) => inputRefs.current[idx] = input}
-                style={styles.input}
-                maxLength={1}
-                value={digit}
-                onChangeText={(value) => handleChange(value, idx)}
-                onKeyPress={(e) => handleKeyPress(e, idx)}
-                keyboardType="numeric"
-              />
-              {!digit && <View style={styles.placeholder} />}
-            </View>
+            <OtpInput
+              key={idx}
+              value={digit}
+              onChange={(value) => handleChange(value, idx)}
+              onKeyPress={(e) => handleKeyPress(e, idx)}
+              inputRef={(input) => inputRefs.current[idx] = input}
+            />
           ))}
         </View>
 
@@ -140,7 +144,7 @@ const VerificationScreen: React.FC = () => {
           </View>
         </View>
 
-        {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>} {/* Ensure this is a string */}
+        {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
         <TouchableOpacity
           style={styles.verifyButton}
@@ -163,19 +167,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F9F9F9",
   },
-  header: {
-    flexDirection: "row",
+  headerContainer:{
     alignItems: "center",
-    width: "100%",
-    height: 40,
-    gap: 58,
-    marginTop: 60,
-    marginBottom: 41,
-    marginLeft: 20,
-  },
-  title: {
-    fontFamily: "Poppins-Bold",
-    fontSize: 18,
   },
   content: {
     marginHorizontal: 32,
@@ -259,20 +252,19 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     width: 300,
     height: 65,
-    paddingVertical: 18,
+    justifyContent: "center",
     alignItems: "center",
   },
   verifyButtonText: {
     fontFamily: "Poppins-Bold",
     fontSize: 20,
     color: "#fce986",
-    alignItems: 'center',
   },
   errorText: {
+    color: "red",
     fontFamily: "Poppins-Regular",
     fontSize: 14,
-    color: "red",
-    marginTop: 10,
+    marginBottom: 20,
   },
 });
 

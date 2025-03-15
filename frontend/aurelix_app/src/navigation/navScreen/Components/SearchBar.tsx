@@ -1,53 +1,77 @@
 import type React from "react"
-import { View, TextInput, StyleSheet } from "react-native"
-import { Search } from "lucide-react-native"
+import { View, TextInput, StyleSheet, TouchableOpacity } from "react-native"
+import { Search, X } from "lucide-react-native"
 
-interface SearchBarProps {
+export interface SearchBarProps {
   placeholder: string
-  onChangeText?: (text: string) => void
-  value?: string
+  value: string
+  onChangeText: (text: string) => void
+  onClear?: () => void
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ placeholder, onChangeText, value }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ placeholder, value, onChangeText, onClear }) => {
   return (
-    <View style={styles.searchContainer}>
-      <Search size={20} color="#9E9E9E" style={styles.searchIcon} />
-      <TextInput
-        style={styles.searchInput}
-        placeholder={placeholder}
-        placeholderTextColor="#9E9E9E"
-        onChangeText={onChangeText}
-        value={value}
-        textAlignVertical="center" // Adjusts the placeholder position
-      />
+    <View style={styles.container}>
+      <View style={styles.searchBar}>
+        <Search size={20} color="#787777" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          placeholder={placeholder}
+          placeholderTextColor="#787777"
+          value={value}
+          onChangeText={onChangeText}
+        />
+        {value.length > 0 && onClear && (
+          <TouchableOpacity
+            onPress={onClear}
+            style={styles.clearButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <X size={18} color="#787777" />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  searchContainer: {
+  container: {
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+  },
+  searchBar: {
     flexDirection: "row",
-    maxWidth: 330,
-    height: 40,
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    marginBottom: 20,
     backgroundColor: "#FFFFFF",
+    borderRadius: 25,
+    height: 48,
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  searchIcon: {
-    marginRight: 8,
+  icon: {
+    marginRight: 12,
   },
-  searchInput: {
+  input: {
     flex: 1,
-    fontSize: 12,
-    color: "#333333",
+    fontSize: 14,
     fontFamily: "Poppins-Regular",
-    position: "relative",
-    bottom: -3,
+    color: "#232327",
+    height: "100%",
+    padding: 0, 
+  },
+  clearButton: {
+    marginLeft: 8,
+    padding: 4,
   },
 })
 
 export default SearchBar
+

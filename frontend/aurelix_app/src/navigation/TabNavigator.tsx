@@ -14,9 +14,11 @@ import BusinessDocumentsScreen from './navScreen/BusinessDocumentScreen';
 import SettingsScreen from './navScreen/SettingsScreen';
 import NotificationsScreen from './navScreen/NotificationScreen';
 import DashboardScreen from './navScreen/DashboardScreen';
+import InvestorHome from './navScreen/InvestorHome';
+import BusinessProfileScreen from './navScreen/BusinessProfile';
 
 const Tab = createBottomTabNavigator();
-const BotStack = createStackNavigator();
+const TabStack = createStackNavigator();
 
 const AnalyticsScreen = () => (
   <View style={styles.screen}>
@@ -25,34 +27,36 @@ const AnalyticsScreen = () => (
 );
 
 // Stack navigator for the Bot tab containing both AI and AIChat screens.
-const BotStackNavigator = () => (
-  <BotStack.Navigator screenOptions={{ headerShown: false }}>
-    <BotStack.Screen name="AI" component={AICoachScreen} />
-    <BotStack.Screen name="AIChat" component={AIChatScreen} />
-  </BotStack.Navigator>
+const TabStackNavigator = () => (
+  <TabStack.Navigator screenOptions={{ headerShown: false }}>
+    <TabStack.Screen name="AI" component={AICoachScreen} />
+    <TabStack.Screen name="AIChat" component={AIChatScreen} />
+  </TabStack.Navigator>
 );
 
 const HomeStackNavigator = () => (
-  <BotStack.Navigator screenOptions={{ headerShown: false }}>
-    <BotStack.Screen name="Home" component={HomeScreen} />
-    <BotStack.Screen name="InvestorProfile" component={InvestorProfileScreen} />
-    <BotStack.Screen name='Notifications' component={NotificationsScreen} options={{headerShown: false}} key='Notifications'/>
-  </BotStack.Navigator>
+  <TabStack.Navigator screenOptions={{ headerShown: false }}>
+    <TabStack.Screen name="Home" component={HomeScreen} />
+    <TabStack.Screen name="InvestorHome" component={InvestorHome} />
+    <TabStack.Screen name="InvestorProfile" component={InvestorProfileScreen} />
+    <TabStack.Screen name="BusinessProfile" component={BusinessProfileScreen} />
+    <TabStack.Screen name='Notifications' component={NotificationsScreen} options={{headerShown: false}} key='Notifications'/>
+  </TabStack.Navigator>
 );
 
 const ChatStackNavigator = () => (
-  <BotStack.Navigator screenOptions={{ headerShown: false }}>
-    <BotStack.Screen name="Chat" component={RecentMessagesScreen} />
-    <BotStack.Screen name="Conversation" component={ConversationScreen} />
-  </BotStack.Navigator>
+  <TabStack.Navigator screenOptions={{ headerShown: false }}>
+    <TabStack.Screen name="Chat" component={RecentMessagesScreen} />
+    <TabStack.Screen name="Conversation" component={ConversationScreen} />
+  </TabStack.Navigator>
 );
 
 const ProfileStackNavigator = () => (
-  <BotStack.Navigator screenOptions={{ headerShown: false }}>
-    <BotStack.Screen name="Profile" component={ProfileScreen} />
-    <BotStack.Screen name="BusinessDocuments" component={BusinessDocumentsScreen} />
-    <BotStack.Screen name="Settings" component={SettingsScreen} />
-  </BotStack.Navigator>
+  <TabStack.Navigator screenOptions={{ headerShown: false }}>
+    <TabStack.Screen name="Profile" component={ProfileScreen} />
+    <TabStack.Screen name="BusinessDocuments" component={BusinessDocumentsScreen} />
+    <TabStack.Screen name="Settings" component={SettingsScreen} />
+  </TabStack.Navigator>
 );
 
 
@@ -83,7 +87,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen 
         name="Bot" 
-        component={BotStackNavigator} // Contains both AIScreen and AIChatScreen.
+        component={TabStackNavigator} // Contains both AIScreen and AIChatScreen.
         options={{
           tabBarIcon: ({ color, focused }) => (
             <View style={styles.aiIconContainer}>

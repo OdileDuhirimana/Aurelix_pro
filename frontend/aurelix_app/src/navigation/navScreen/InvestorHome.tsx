@@ -19,31 +19,31 @@ import SearchBar from "./Components/SearchBar"
 import StatCard from "./Components/StatCard"
 import FilterChip from "./Components/FilterChip"
 import ActionButton from "./Components/ActionButton"
-import InvestorCard from "./Components/InvestorCard"
+import BusinessCard from "./Components/BusinessCard"
 import FilterPopup from "./Components/FilterPopup"
 import SortPopup from "./Components/SortPopup"
 
 // Types and Services
-import type { Investor, Region, FilterOption, SortOption } from "../index"
-import { fetchInvestors, fetchRegions, fetchStats, fetchSectors, fetchSortOptions } from "./mockup/api_home"
+import type { Business, Region, FilterOption, SortOption } from "../index"
+import { fetchBusinesses, fetchRegions, fetchStats, fetchSectors, fetchSortOptions } from "./mockup/api_investor"
 
-interface HomeScreenProps {
+interface InvestorHomeProps {
   navigation: any
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+const InvestorHome: React.FC<InvestorHomeProps> = ({ navigation }) => {
   // State
-  const [investors, setInvestors] = useState<Investor[]>([])
+  const [businesses, setBusinesses] = useState<Business[]>([])
   const [regions, setRegions] = useState<Region[]>([])
   const [sectors, setSectors] = useState<FilterOption[]>([])
   const [sortOptions, setSortOptions] = useState<SortOption[]>([])
   const [stats, setStats] = useState({
-    visitors: "",
-    visitorsChange: "",
-    visitorsIncreasing: false,
-    newInvestors: "",
-    newInvestorsChange: "",
-    newInvestorsIncreasing: true,
+    businesses: "",
+    businessesChange: "",
+    businessesIncreasing: false,
+    newBusinesses: "",
+    newBusinessesChange: "",
+    newBusinessesIncreasing: true,
   })
 
   // Filter and search state
@@ -59,12 +59,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [showFilterPopup, setShowFilterPopup] = useState<boolean>(false)
   const [showSortPopup, setShowSortPopup] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+  const [filterMenuOpen, setFilterMenuOpen] = useState<boolean>(false)
 
   // Debounce search query
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery.trim().toLowerCase())
-    }, 300) // Reduced debounce time for better responsiveness
+    }, 300)
     return () => clearTimeout(handler)
   }, [searchQuery])
 
@@ -74,15 +75,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setError(null)
 
     try {
-      const [investorsData, regionsData, statsData, sectorsData, sortOptionsData] = await Promise.all([
-        fetchInvestors(),
+      const [businessesData, regionsData, statsData, sectorsData, sortOptionsData] = await Promise.all([
+        fetchBusinesses(),
         fetchRegions(),
         fetchStats(),
         fetchSectors(),
         fetchSortOptions(),
       ])
 
-      setInvestors(investorsData)
+      setBusinesses(businessesData)
       setRegions(regionsData)
       setStats(statsData)
       setSectors(sectorsData)
@@ -101,17 +102,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     }
   }, [])
 
-  // Load investors based on filters
-  const loadInvestors = useCallback(async () => {
+  // Load businesses based on filters
+  const loadBusinesses = useCallback(async () => {
     try {
       setIsLoading(true)
-      const data = await fetchInvestors(activeRegion, activeSector, selectedSortOption, debouncedSearchQuery)
-      setInvestors(data)
+      const data = await fetchBusinesses(activeRegion, activeSector, selectedSortOption, debouncedSearchQuery)
+      setBusinesses(data)
       setError(null)
     } catch (error) {
-      console.error("Error loading investors:", error)
-      setInvestors([])
-      setError("Failed to load investors. Please try again.")
+      console.error("Error loading businesses:", error)
+      setBusinesses([])
+      setError("Failed to load businesses. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -124,13 +125,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return () => abortController.abort()
   }, [])
 
-  // Load investors when filters change
+  // Load businesses when filters change
   useEffect(() => {
     if (regions.length > 0) {
-      // Only load if regions are already fetched
-      loadInvestors()
+      loadBusinesses()
     }
-  }, [loadInvestors, regions.length])
+  }, [loadBusinesses, regions.length])
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
@@ -162,22 +162,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setShowFilterPopup(false)
   }, [])
 
-  const handleInvestorPress = useCallback(
-    (investor: Investor) => {
-      navigation.navigate("InvestorProfile", { investor })
+  const handleBusinessPress = useCallback(
+    (business: Business) => {
+      navigation.navigate("BusinessProfile", { business })
     },
     [navigation],
   )
 
   const handleChatPress = useCallback(
-    (investor: Investor) => {
-      navigation.navigate("Chat", { investor })
+    (business: Business) => {
+      navigation.navigate("Chat", { business })
     },
     [navigation],
   )
 
   const handleClearSearch = useCallback(() => {
     setSearchQuery("")
+  }, [])
+
+  const handleFilterPress = useCallback(() => {
+    setFilterMenuOpen(true)
   }, [])
 
   // Memoized values
@@ -194,33 +198,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return option.direction === "asc" ? <ArrowUp size={14} color="#232327" /> : <ArrowDown size={14} color="#232327" />
   }, [selectedSortOption, sortOptions])
 
-  // Helper function to get proper image source
-  const getImageSource = useCallback((imagePath: string) => {
-    if (!imagePath) return `/placeholder.svg?height=100&width=100`
-
-    if (imagePath.startsWith("http")) {
-      return imagePath
-    } else if (imagePath.startsWith("./")) {
-      return `/placeholder.svg?height=100&width=100`
-    } else {
-      return `/placeholder.svg?height=100&width=100`
-    }
-  }, [])
-
   // Render functions
-  const renderInvestorItem = useCallback(
-    ({ item, index }: { item: Investor; index: number }) => (
-      <InvestorCard
-        investor={{
-          ...item,
-          image: getImageSource(item.image),
-        }}
-        onPress={() => handleInvestorPress(item)}
-        onChatPress={() => handleChatPress(item)}
-        style={index % 2 === 0 ? { marginRight: 8 } : { marginLeft: 8 }}
-      />
+  const renderBusinessItem = useCallback(
+    ({ item, index }: { item: Business; index: number }) => (
+      <View style={styles.businessCardContainer}>
+        <BusinessCard
+          business={item}
+          onPress={() => handleBusinessPress(item)}
+          onChatPress={() => handleChatPress(item)}
+        />
+      </View>
     ),
-    [handleInvestorPress, handleChatPress, getImageSource],
+    [handleBusinessPress, handleChatPress],
   )
 
   const renderHeader = useCallback(
@@ -229,7 +218,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <View style={styles.header}>
           <View>
             <Text style={styles.welcomeText}>Hello, Welcome👋</Text>
-            <Text style={styles.userName}>Ange Curtis</Text>
+            <Text style={styles.userName}>Mark Robinson</Text>
           </View>
           <TouchableOpacity
             style={styles.notificationButton}
@@ -242,7 +231,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         <View style={styles.searchContainer}>
           <SearchBar
-            placeholder="Search investors..."
+            placeholder="Search enterprises..."
             onChangeText={setSearchQuery}
             value={searchQuery}
             onClear={handleClearSearch}
@@ -251,16 +240,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         <View style={styles.statsContainer}>
           <StatCard
-            value={stats.visitors}
-            label="Visitors this year"
-            percentage={stats.visitorsChange}
-            isIncreasing={stats.visitorsIncreasing}
+            value={stats.businesses}
+            label="You might like"
+            percentage={"Businesses"}
+            isIncreasing={stats.businessesIncreasing}
           />
           <StatCard
-            value={stats.newInvestors}
-            label="New investors this year"
-            percentage={stats.newInvestorsChange}
-            isIncreasing={stats.newInvestorsIncreasing}
+            value={stats.newBusinesses}
+            label="New businesses today"
+            percentage={stats.newBusinessesChange}
+            isIncreasing={stats.newBusinessesIncreasing}
           />
         </View>
 
@@ -271,18 +260,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersContainer}
           renderItem={({ item }) => (
-            <FilterChip
-              label={item.name}
-              active={item.active}
-              onPress={() => handleRegionPress(item)}
-            />
+            <FilterChip label={item.name} active={item.active} onPress={() => handleRegionPress(item)} />
           )}
         />
 
         <View style={styles.matchesHeader}>
           <Text style={styles.matchesTitle}>Top matches</Text>
           <View style={styles.matchesActions}>
-          <ActionButton
+            <ActionButton
               label={`Sort ${selectedSortOption ? "" : "↓"}`}
               icon={sortDirectionIcon}
               onPress={() => setShowSortPopup(true)}
@@ -336,14 +321,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <>
             <Search size={40} color="#A3A2A3" style={{ marginBottom: 10 }} />
             <Text style={styles.emptyTitle}>No results found</Text>
-            <Text style={styles.emptyText}>We couldn't find any investors matching "{debouncedSearchQuery}"</Text>
+            <Text style={styles.emptyText}>We couldn't find any businesses matching "{debouncedSearchQuery}"</Text>
             <TouchableOpacity style={styles.clearSearchButton} onPress={handleClearSearch}>
               <Text style={styles.clearSearchText}>Clear search</Text>
             </TouchableOpacity>
           </>
         ) : (
           <>
-            <Text style={styles.emptyTitle}>No investors found</Text>
+            <Text style={styles.emptyTitle}>No businesses found</Text>
             <Text style={styles.emptyText}>Try adjusting your filters or search criteria</Text>
           </>
         )}
@@ -364,7 +349,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     [error, loadData],
   )
 
-  if (isLoading && !isRefreshing && investors.length === 0) {
+  if (isLoading && !isRefreshing && businesses.length === 0) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00a86b" />
@@ -379,22 +364,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       {error && !isRefreshing ? (
         renderError()
       ) : (
-        <FlatList
-          data={investors}
-          renderItem={renderInvestorItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={styles.investorRow}
-          contentContainerStyle={styles.investorList}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmptyList}
-          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#00a86b"]} />}
-          showsVerticalScrollIndicator={false}
-          initialNumToRender={8}
-          maxToRenderPerBatch={10}
-          windowSize={10}
-          removeClippedSubviews={true}
-        />
+        <View style={styles.container}>
+          <FlatList
+            data={businesses}
+            renderItem={renderBusinessItem}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={styles.businessList}
+            columnWrapperStyle={styles.businessRow}
+            ListHeaderComponent={renderHeader}
+            ListEmptyComponent={renderEmptyList}
+            refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#00a86b"]} />}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={8}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            removeClippedSubviews={true}
+          />
+        </View>
       )}
 
       <FilterPopup
@@ -421,7 +408,11 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F9F9F9",
-    paddingHorizontal: 20,
+  },
+  container: {
+    flex: 1,
+    maxWidth: 480, // Match the max-width from InvestmentGrid
+    marginHorizontal: "auto", // Center the container
   },
   loadingContainer: {
     flex: 1,
@@ -435,6 +426,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 16,
     marginBottom: 20,
+    paddingHorizontal: 16,
   },
   welcomeText: {
     fontSize: 12,
@@ -451,15 +443,17 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     marginBottom: 16,
+    paddingHorizontal: 16,
   },
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 20,
+    paddingHorizontal: 16,
   },
   filtersContainer: {
     paddingVertical: 10,
-    paddingHorizontal: 5,
+    paddingHorizontal: 16,
     marginBottom: 20,
   },
   matchesHeader: {
@@ -467,6 +461,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
+    paddingHorizontal: 16,
   },
   matchesTitle: {
     fontSize: 16,
@@ -491,12 +486,16 @@ const styles = StyleSheet.create({
     color: "#00a86b",
     fontFamily: "Poppins-Medium",
   },
-  investorList: {
+  businessList: {
     paddingBottom: 16,
   },
-  investorRow: {
+  businessRow: {
     justifyContent: "space-between",
+    paddingHorizontal: 16,
     marginBottom: 16,
+  },
+  businessCardContainer: {
+    width: "48.5%", // Slightly less than 50% to account for gap
   },
   emptyContainer: {
     padding: 40,
@@ -556,6 +555,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
+    paddingHorizontal: 16,
   },
   activeFilterLabel: {
     fontSize: 12,
@@ -586,5 +586,5 @@ const styles = StyleSheet.create({
   },
 })
 
-export default HomeScreen
+export default InvestorHome
 

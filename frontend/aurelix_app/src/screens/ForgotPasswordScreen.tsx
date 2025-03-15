@@ -4,12 +4,13 @@ import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image, ActivityInd
 import { Feather } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
 import CustomInput from "../components/CustomInput"
+import { SocialAuthButtons } from "../components/SocialAuthButtons"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import Header from "../components/header"
 
-// Simulating a backend request function
 const simulateApiCall = (email: string) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      // Simulating success for a valid email
       if (email.includes("@")) {
         resolve("Reset link sent!");
       } else {
@@ -18,6 +19,8 @@ const simulateApiCall = (email: string) => {
     }, 2000);
   });
 };
+
+
 
 const ForgotPasswordScreen: React.FC = () => {
   const [email, setEmail] = useState("")
@@ -45,18 +48,26 @@ const ForgotPasswordScreen: React.FC = () => {
     }
   };
 
+  const handleAuthSuccess = async (userData) => {
+    try {
+      await AsyncStorage.setItem("@user", JSON.stringify(userData))
+      navigation.navigate("Home" as never)
+    } catch (error) {
+      setError('Failed to process authentication')
+    }
+  }
+
+  const handleAuthError = (errorMessage) => {
+    setError(errorMessage)
+  }
+
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Feather name="chevron-left" size={24} color="#221f1f" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Forgot Password</Text>
-      </View>
+      <Header onBack={() => navigation.goBack()} title="Forgot Password" />
 
-      {/* Form */}
       <View style={styles.content}>
+        <View style={styles.form}>
+        <View style={styles.inputContainer}>
         <CustomInput
           type="text"
           placeholder="Enter your email"
@@ -64,15 +75,15 @@ const ForgotPasswordScreen: React.FC = () => {
           value={email}
           onChange={setEmail}
         />
+        </View>
+        
 
-        {/* Show error message */}
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {error && <Text style={styles.errorText}>{error}</Text>} 
 
-        {/* Send Reset Link Button */}
         <TouchableOpacity
           style={styles.resetButton}
           onPress={handleResetPassword}
-          disabled={loading}  // Disable button while loading
+          disabled={loading}
         >
           {loading ? (
             <ActivityIndicator size="small" color="#fce986" />  // Show loader while processing
@@ -80,6 +91,8 @@ const ForgotPasswordScreen: React.FC = () => {
             <Text style={styles.resetButtonText}>Send Reset Link</Text>
           )}
         </TouchableOpacity>
+        </View>
+        
 
         {/* Sign Up Link */}
         <View style={styles.signupContainer}>
@@ -88,27 +101,12 @@ const ForgotPasswordScreen: React.FC = () => {
             <Text style={styles.signupLink}>Sign up</Text>
           </TouchableOpacity>
         </View>
-
-        {/* OR Divider */}
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.dividerLine} />
-        </View>
       </View>
 
-      {/* Social Buttons */}
-      <TouchableOpacity style={styles.socialButton}>
-        <Image source={{ uri: "https://v0.dev/google.svg" }} style={styles.socialIcon} />
-        <Text style={styles.socialButtonText}>Sign in with Google</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.socialButton, styles.facebookButton]}>
-        <View style={styles.facebookIconContainer}>
-          <Text style={styles.facebookIcon}>f</Text>
-        </View>
-        <Text style={styles.socialButtonText}>Sign in with Facebook</Text>
-      </TouchableOpacity>
+      <SocialAuthButtons 
+                      onAuthSuccess={handleAuthSuccess}
+                      onAuthError={handleAuthError}
+                    />
     </View>
   )
 };
@@ -117,32 +115,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9F9F9",
-  },
-  header: {
-    flexDirection: "row",
     alignItems: "center",
-    width: "100%",
-    height: 40,
-    gap: 32,
-    marginTop: 60,
-    marginBottom: 80,
-    marginLeft: 20,
-  },
-  title: {
-    fontFamily: "Poppins-Bold",
-    fontSize: 18,
   },
   content: {
+    width: '100%',
     marginHorizontal: 24,
   },
+  form: { 
+    width: "100%", 
+    alignItems: "center",
+    marginTop: 40, 
+  },
+  inputContainer: { 
+    width: "100%", 
+    maxWidth: 330, 
+    marginBottom: 34 
+  },
   resetButton: {
+    width: "100%",
+    maxWidth: 330,
     backgroundColor: "#00a86b",
     borderRadius: 30,
     height: 65,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 48,
-    marginTop: 42,
+    marginTop: 20,
   },
   resetButtonText: {
     fontFamily: "Poppins-SemiBold",
@@ -165,68 +163,13 @@ const styles = StyleSheet.create({
     color: "#00a86b",
     fontSize: 14,
   },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#E5E7EB",
-  },
-  dividerText: {
-    fontFamily: "Poppins-Regular",
-    fontSize: 14,
-    color: "#9CA3AF",
-    marginHorizontal: 16,
-  },
-  socialButton: {
-    flexDirection: "row",
-    gap: 20,
-    width: "100%",
-    maxWidth: 310,
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-    backgroundColor: "#FFFFFF",
-    marginHorizontal: 42,
-  },
-  socialButtonText: {
-    fontFamily: "Poppins-SemiBold",
-    fontSize: 16,
-  },
-  socialIcon: {
-    width: 24,
-    height: 24,
-  },
-  facebookButton: {
-    marginBottom: 16,
-  },
-  facebookIconContainer: {
-    width: 24,
-    height: 24,
-    backgroundColor: "#3577e5",
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  facebookIcon: {
-    color: "white",
-    fontSize: 16,
-    fontFamily: "Poppins-Bold",
-  },
-  errorText: {
-    color: "red",
-    fontFamily: "Poppins-Regular",
-    fontSize: 14,
-    marginBottom: 20,
-  }
+   errorText: {
+      color: "red",
+      fontFamily: "Poppins-Regular",
+      fontSize: 14,
+      marginBottom: 20,
+    },
+
 });
 
 export default ForgotPasswordScreen;

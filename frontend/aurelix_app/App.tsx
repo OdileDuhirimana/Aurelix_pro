@@ -12,7 +12,6 @@ import EligibilityScreen from "./src/screens/EligibilityScreen";
 import Error404Screen from "./src/screens/404";
 import Error403Screen from "./src/screens/403";
 import BottomTabNavigator from "./src/navigation/TabNavigator";
-import UploadingScreen from "./src/screens/UploadingScreen";
 import ProfileSetupScreen from "./src/screens/ProfileSetup";
 import SuccessScreen from "./src/screens/SuccessPage";
 import IDVerifyScreen from "./src/screens/IDVerify";
@@ -51,7 +50,6 @@ export default function App() {
         <Stack.Screen name="Error" component={Error404Screen} />
         <Stack.Screen name="Forbidden" component={Error403Screen} />
         <Stack.Screen name="Home" component={BottomTabNavigator} />
-        <Stack.Screen name="Uploading" component={UploadingScreen} />
         <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
         <Stack.Screen name="Success" component={SuccessScreen} />
         <Stack.Screen name="Data" component={IDVerifyScreen}/>
