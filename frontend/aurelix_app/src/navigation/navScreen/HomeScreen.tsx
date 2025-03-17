@@ -164,7 +164,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const handleInvestorPress = useCallback(
     (investor: Investor) => {
-      navigation.navigate("InvestorProfile", { investor })
+      navigation.navigate("InvestorHome", { investor })
     },
     [navigation],
   )
@@ -194,18 +194,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return option.direction === "asc" ? <ArrowUp size={14} color="#232327" /> : <ArrowDown size={14} color="#232327" />
   }, [selectedSortOption, sortOptions])
 
-  // Helper function to get proper image source
-  const getImageSource = useCallback((imagePath: string) => {
-    if (!imagePath) return `/placeholder.svg?height=100&width=100`
-
-    if (imagePath.startsWith("http")) {
-      return imagePath
-    } else if (imagePath.startsWith("./")) {
-      return `/placeholder.svg?height=100&width=100`
-    } else {
-      return `/placeholder.svg?height=100&width=100`
-    }
-  }, [])
 
   // Render functions
   const renderInvestorItem = useCallback(
@@ -213,14 +201,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <InvestorCard
         investor={{
           ...item,
-          image: getImageSource(item.image),
+          image: item.image,
         }}
         onPress={() => handleInvestorPress(item)}
         onChatPress={() => handleChatPress(item)}
         style={index % 2 === 0 ? { marginRight: 8 } : { marginLeft: 8 }}
       />
     ),
-    [handleInvestorPress, handleChatPress, getImageSource],
+    [handleInvestorPress, handleChatPress],
   )
 
   const renderHeader = useCallback(
@@ -271,11 +259,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersContainer}
           renderItem={({ item }) => (
-            <FilterChip
-              label={item.name}
-              active={item.active}
-              onPress={() => handleRegionPress(item)}
-            />
+            <FilterChip label={item.name} active={item.active} onPress={() => handleRegionPress(item)} />
           )}
         />
 
@@ -379,6 +363,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       {error && !isRefreshing ? (
         renderError()
       ) : (
+         <View style={styles.container}>
         <FlatList
           data={investors}
           renderItem={renderInvestorItem}
@@ -395,6 +380,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           windowSize={10}
           removeClippedSubviews={true}
         />
+        </View>
       )}
 
       <FilterPopup
@@ -421,7 +407,11 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F9F9F9",
-    paddingHorizontal: 20,
+  },
+  container: {
+    flex: 1,
+    maxWidth: 480, 
+    marginHorizontal: "auto", 
   },
   loadingContainer: {
     flex: 1,
@@ -435,6 +425,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 16,
     marginBottom: 20,
+    paddingHorizontal: 16,
   },
   welcomeText: {
     fontSize: 12,
@@ -451,15 +442,17 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     marginBottom: 16,
+    paddingHorizontal: 16,
   },
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 20,
+    paddingHorizontal: 16,
   },
   filtersContainer: {
     paddingVertical: 10,
-    paddingHorizontal: 5,
+    paddingHorizontal: 16,
     marginBottom: 20,
   },
   matchesHeader: {
@@ -467,6 +460,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
+    paddingHorizontal: 16,
   },
   matchesTitle: {
     fontSize: 16,
@@ -496,7 +490,11 @@ const styles = StyleSheet.create({
   },
   investorRow: {
     justifyContent: "space-between",
+    paddingHorizontal: 16,
     marginBottom: 16,
+  },
+  businessCardContainer: {
+    width: "48.5%", 
   },
   emptyContainer: {
     padding: 40,
@@ -556,6 +554,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
+    paddingHorizontal: 16,
   },
   activeFilterLabel: {
     fontSize: 12,

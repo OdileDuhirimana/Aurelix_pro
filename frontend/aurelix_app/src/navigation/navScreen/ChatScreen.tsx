@@ -19,7 +19,7 @@ import { useFocusEffect } from "@react-navigation/native"
 
 // Import the API and types from separate file
 import { MessagesAPI, type Conversation } from "./mockup/api_message-api"
-import { formatTime } from "./util/time-utils"
+import { formatTime } from "./util/formatters"
 
 type RecentMessagesScreenNavigationProp = StackNavigationProp<any, "RecentMessages">
 

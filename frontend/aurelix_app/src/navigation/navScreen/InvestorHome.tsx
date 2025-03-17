@@ -411,8 +411,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    maxWidth: 480, // Match the max-width from InvestmentGrid
-    marginHorizontal: "auto", // Center the container
+    maxWidth: 480, 
+    marginHorizontal: "auto", 
   },
   loadingContainer: {
     flex: 1,

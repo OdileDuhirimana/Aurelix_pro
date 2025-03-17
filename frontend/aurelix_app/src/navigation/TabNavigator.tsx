@@ -13,20 +13,13 @@ import ProfileScreen from './navScreen/ProfileScreen';
 import BusinessDocumentsScreen from './navScreen/BusinessDocumentScreen';
 import SettingsScreen from './navScreen/SettingsScreen';
 import NotificationsScreen from './navScreen/NotificationScreen';
-import DashboardScreen from './navScreen/DashboardScreen';
+import DashboardScreen from './navScreen/AnalyticsScreen';
 import InvestorHome from './navScreen/InvestorHome';
 import BusinessProfileScreen from './navScreen/BusinessProfile';
 
 const Tab = createBottomTabNavigator();
 const TabStack = createStackNavigator();
 
-const AnalyticsScreen = () => (
-  <View style={styles.screen}>
-    <Text>Analytics</Text>
-  </View>
-);
-
-// Stack navigator for the Bot tab containing both AI and AIChat screens.
 const TabStackNavigator = () => (
   <TabStack.Navigator screenOptions={{ headerShown: false }}>
     <TabStack.Screen name="AI" component={AICoachScreen} />
