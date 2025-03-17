@@ -116,28 +116,6 @@ const BusinessProfileScreen: React.FC<Props> = ({ navigation, route }) => {
     })
   }
 
-  const renderSimilarInvestor = ({ item }: { item: Investor }) => (
-    <View style={styles.similarInvestorCard}>
-      <Image
-        source={{ uri: item.image }}
-        style={styles.similarInvestorImage}
-      />
-      <Text style={styles.similarInvestorName}>{item.name}</Text>
-      <Text style={styles.investmentCount}>
-        {item.investments} Investments
-      </Text>
-      <Text style={styles.industryText1}>{item.industry}</Text>
-      <View style={styles.locationRow}>
-        <Text style={styles.locationText}>{item.location}</Text>
-        <TouchableOpacity
-          style={styles.chatButton}
-          onPress={() => handleInitiateChat(item.id)}
-        >
-          <MessageCircle size={20} color="#00a86b" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  )
 
   if (isLoading) {
     return (
@@ -218,51 +196,6 @@ const BusinessProfileScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           </View>
         )}
-
-        {/* Similar Investors Section */}
-        <View style={styles.similarSection}>
-          <Text style={styles.sectionTitle}>Similar Investors</Text>
-          
-          <View style={styles.similarHeader}>
-            <Text style={styles.totalCount}>{totalSimilar}+ People</Text>
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.sortFilterButton}
-                onPress={handleSort}
-              >
-                <Text style={styles.sortFilterButtonText}>Sort</Text>
-                <ArrowUpDown size={16} color="#171725" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.sortFilterButton}
-                onPress={handleFilter}
-              >
-                <Text style={styles.sortFilterButtonText}>Filter</Text>
-                <Filter size={16} color="#171725" />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {isLoadingSimilar ? (
-            <ActivityIndicator
-              size="small"
-              color="#00a86b"
-              style={styles.loadingIndicator}
-            />
-          ) : (
-            <FlatList
-              data={similarInvestors}
-              renderItem={renderSimilarInvestor}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.similarInvestorsList}
-              snapToAlignment="start"
-              pagingEnabled={false}
-            />
-          )}
-        </View>
       </ScrollView>
     </SafeAreaView>
   )
