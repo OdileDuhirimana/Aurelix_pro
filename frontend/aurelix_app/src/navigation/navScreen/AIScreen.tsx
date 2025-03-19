@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useReducer, useCallback } from 'react';
+import React, { useReducer, useRef, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -22,7 +22,6 @@ import {
 } from 'lucide-react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
-// Define TypeScript interfaces for data structures
 interface Message {
   id: string;
   text: string;
@@ -43,7 +42,6 @@ interface Props {
   navigation: AICoachScreenNavigationProp;
 }
 
-// State management for handling loading and conversation data
 const initialState = {
   inputText: '',
   isRecording: false,
@@ -76,7 +74,6 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const inputRef = useRef<TextInput>(null);
 
-  // Quick actions data
   const quickActions: QuickAction[] = [
     {
       id: 'pitch',
@@ -98,14 +95,12 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
     }
   ];
 
-  // Fetch recent conversations on component mount
   useEffect(() => {
     fetchRecentConversations();
   }, []);
 
   const fetchRecentConversations = async () => {
     try {
-      // Simulating backend fetch call with setTimeout
       setTimeout(() => {
         const conversations = [
           { id: '1', title: 'Startup pitch feedback', lastUpdated: new Date() },
@@ -118,10 +113,9 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleSend = async () => {
+  const handleSend = () => {
     if (state.inputText.trim() === '') return;
     
-    // Simulate navigation to chat screen with initial message
     navigation.navigate('AIChat', { initialMessage: state.inputText });
     dispatch({ type: 'SET_INPUT_TEXT', payload: '' });
   };
@@ -136,7 +130,6 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
   }, []);
 
   const handleAttachment = useCallback(() => {
-    // Simulate attachment functionality (e.g., document picker)
     console.log("Attachment clicked");
   }, []);
 
@@ -147,7 +140,6 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity 
             style={styles.backButton}
@@ -156,12 +148,9 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
             <ChevronLeft size={24} color="#171725" />
           </TouchableOpacity>
           <Text style={styles.title}>AI pitch coach</Text>
-          {/* <View style={styles.placeholder} /> */}
         </View>
 
-        {/* Main Content */}
         <View style={styles.content}>
-          {/* Heading with sparkle icon */}
           <View style={styles.headingContainer}>
             <Text style={styles.heading}>What can I help with</Text>
             <View style={styles.sparkleContainer}>
@@ -169,7 +158,6 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
             </View>
           </View>
 
-          {/* Input area */}
           <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
               <TextInput
@@ -205,7 +193,6 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Quick Actions */}
           <View style={styles.quickActionsContainer}>
             {quickActions.map((action) => (
               <TouchableOpacity 
@@ -219,7 +206,6 @@ const AICoachScreen: React.FC<Props> = ({ navigation }) => {
             ))}
           </View>
 
-          {/* Loading indicator */}
           {state.isLoading && (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color="#00a86b" />
@@ -260,9 +246,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#221F1F',
-  },
-  placeholder: {
-    width: 40,
   },
   content: {
     alignItems: 'center',
@@ -336,8 +319,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionButton: {
-    // width: 76,
-    // height: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',

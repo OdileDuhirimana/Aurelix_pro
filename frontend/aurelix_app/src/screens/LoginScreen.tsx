@@ -20,13 +20,24 @@ import Header from "../components/header"
 // Ensure auth session can complete
 WebBrowser.maybeCompleteAuthSession()
 
+// Define user credentials and their corresponding user types
+const USER_CREDENTIALS = {
+  admin: {
+    password: "admin123",
+    userType: "investor"
+  },
+  user: {
+    password: "user123",
+    userType: "entrepreneur"
+  }
+}
+
 // Main Login Screen component
 const LoginScreen = () => {
   const [formData, setFormData] = useState({ name: "", password: "" })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigation = useNavigation()
-
 
   const handleSubmit = useCallback(async () => {
     if (!formData.name || !formData.password) {
@@ -38,28 +49,41 @@ const LoginScreen = () => {
     setLoading(true)
 
     try {
-      const success = await new Promise<boolean>(resolve => 
-        setTimeout(() => resolve(formData.name === "admin" && formData.password === "admin123"), 2000)
-      )
+      // Check if username exists in our predefined credentials
+      const userCredential = USER_CREDENTIALS[formData.name.toLowerCase()]
       
-      if (success) {
+      if (userCredential && userCredential.password === formData.password) {
+        // Store user type in AsyncStorage for future app sessions
+        await AsyncStorage.setItem("@user_type", userCredential.userType)
+        
+        // Also store auth token
         await AsyncStorage.setItem("@auth_token", "sample_token")
-        navigation.navigate('Home', { screen: 'InvestorHome' });
+        
+        // Navigate to Home screen with the user type
+        navigation.navigate('Home', { 
+          userType: userCredential.userType 
+        })
       } else {
         setError("Invalid credentials.")
       }
     } catch (err) {
+      console.error("Login error:", err)
       setError("An error occurred. Please try again.")
     } finally {
       setLoading(false)
     }
   }, [formData, navigation])
 
- 
   const handleAuthSuccess = async (userData) => {
     try {
+      // For social auth, you might want to determine user type differently
+      // For now, let's default to entrepreneur for social logins
+      const userType = "entrepreneur"
+      
+      await AsyncStorage.setItem("@user_type", userType)
       await AsyncStorage.setItem("@user", JSON.stringify(userData))
-      navigation.navigate("InvestorHome" as never)
+      
+      navigation.navigate("Home", { userType })
     } catch (error) {
       setError('Failed to process authentication')
     }
@@ -122,6 +146,14 @@ const LoginScreen = () => {
               )}
             </TouchableOpacity>
 
+            <View style={styles.credentialsHint}>
+              <Text style={styles.credentialsHintText}>
+                Investor login: admin / admin123
+              </Text>
+              <Text style={styles.credentialsHintText}>
+                Entrepreneur login: user / user123
+              </Text>
+            </View>
 
             <View style={styles.signUpContainer}>
               <Text style={styles.signUpText}>Don't have an account? </Text>
@@ -186,6 +218,15 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Bold",
     color: "#fce986",
     fontSize: 20,
+  },
+  credentialsHint: {
+    marginBottom: 20,
+    alignItems: "center",
+  },
+  credentialsHintText: {
+    fontFamily: "Poppins-Regular",
+    fontSize: 12,
+    color: "#666",
   },
   signUpContainer: {
     flexDirection: "row",

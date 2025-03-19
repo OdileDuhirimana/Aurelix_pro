@@ -14,9 +14,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GradientText from '../../components/GradientText';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Define user type
+type UserType = 'entrepreneur' | 'investor';
 
 // Mock data for notifications - would be replaced with API data
-const INITIAL_NOTIFICATIONS = [
+const ENTREPRENEUR_NOTIFICATIONS = [
   {
     id: '1',
     type: 'interest',
@@ -26,7 +30,7 @@ const INITIAL_NOTIFICATIONS = [
       avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
       location: 'USA',
     },
-    message: 'John Doe from USA is interested in your profile, you can talk!!',
+    message: 'John Doe from USA is interested in your business you can talk!!',
     timestamp: new Date(new Date().setHours(new Date().getHours() - 1)),
     read: true,
     section: 'recent',
@@ -91,11 +95,107 @@ const INITIAL_NOTIFICATIONS = [
   },
 ];
 
-const NotificationsScreen = ({ navigation }) => {
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+const INVESTOR_NOTIFICATIONS = [
+  {
+    id: '1',
+    type: 'message',
+    user: {
+      id: 'b1',
+      name: 'Canaberra',
+      avatar: 'https://s3-alpha-sig.figma.com/img/4b07/3cce/73f6c12d8d50448c6c5457d2dca5a5c7?Expires=1743379200&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=NdDLaM-KXxKx2ayfOTbHlAW0Nig2AB2xcqb~uFVxpvUQNY0XOAFLYXFI4kCusWxDWK1v1xZ~GSIjKNSju1pAxhlB2IKtE6ulVii~D60-QVaMzrO2IKQa6~E4QsvCiQq1D4hBT8B3TLzRPNEc79kjcOdNOYu6s81NMqbSxACKzxS0z-7iEQQZ6WaFr8lPrm0E5sThoIBo3DcZbJeqhwPdy10-AqO26A--U5Z7muI-ktPhd7gc6-N1GfRTNmgnuu44H3dsS7-ozct1qOkiwXVi9Kezq5ZagFll8P4VniJKnfiqU69zbHZdDmHPULw1MHNf81xZQBWlwjLztCHm0MR~EQ__',
+      type: 'business',
+    },
+    message: 'An enterprise in service, a cafe messaged you',
+    timestamp: new Date(new Date().setHours(new Date().getHours() - 1)),
+    read: false,
+    section: 'recent',
+    time: '9:06',
+  },
+  {
+    id: '2',
+    type: 'message',
+    user: {
+      id: 'b2',
+      name: 'HerInTech',
+      avatar: 'https://s3-alpha-sig.figma.com/img/3544/a3f2/5fc757659ca0e972fb07bb92fdaacc9e?Expires=1743379200&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=Z3OANjR2TDV7bh0CJC8HPNDLbBeyPkoG-5y6i4plRXOxJ7yaaZv7z-Aw4ikgkgS~NU5h6JNPzuTleKgdkZftBM7rcttMo~OqIngN2XPTDm2ZegY9J-n7P6VZamEPBc8xJ5sRI1AtIB6Z86WCxgB1SWyXOyLDH9ZNWCBWLC8uept2-yaOIVDzaFwSw2TK~8JQYiJE2JbsOb4pMfVy3HDkUkLR7P8o2XSSoy-wGyDglbnfTYXdZ33wF6TVLl2yrGCxLS6eMBuY0UOSv80t5xkugDURBO1B2OGACOm-XC8rjeISgfLQjHkSEeY1YnzmwTgZTC4h9RlemMOhGg0Oxru8Dg__',
+      type: 'business',
+    },
+    message: 'A Rwandan tech organization teaching tech to girls wants to talk!',
+    timestamp: new Date(new Date().setHours(new Date().getHours() - 2)),
+    read: false,
+    section: 'recent',
+    time: '9:00',
+  },
+  {
+    id: '3',
+    type: 'interest',
+    user: {
+      id: 'b3',
+      name: 'Bralirwa',
+      avatar: 'https://s3-alpha-sig.figma.com/img/3544/a3f2/5fc757659ca0e972fb07bb92fdaacc9e?Expires=1743379200&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=Z3OANjR2TDV7bh0CJC8HPNDLbBeyPkoG-5y6i4plRXOxJ7yaaZv7z-Aw4ikgkgS~NU5h6JNPzuTleKgdkZftBM7rcttMo~OqIngN2XPTDm2ZegY9J-n7P6VZamEPBc8xJ5sRI1AtIB6Z86WCxgB1SWyXOyLDH9ZNWCBWLC8uept2-yaOIVDzaFwSw2TK~8JQYiJE2JbsOb4pMfVy3HDkUkLR7P8o2XSSoy-wGyDglbnfTYXdZ33wF6TVLl2yrGCxLS6eMBuY0UOSv80t5xkugDURBO1B2OGACOm-XC8rjeISgfLQjHkSEeY1YnzmwTgZTC4h9RlemMOhGg0Oxru8Dg__https://s3-alpha-sig.figma.com/img/f8a2/ad2e/711de2ec8e0f715687b3738238d171b0?Expires=1743379200&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=Hrwff2TtqgzjNvW6BEEGjaKsOdiAR94gpiVFBcHH2LnjSN~JPNmMbm5JZUAWG3O~3FhEpw3Oi3EzUSlnsPE0pCZgXy8dDLenBclpcjZsc9PUTf89tSjXEUKjoW1Sb8HP9xakAysyR2iprhBiP7k8vHZSvTz7PNPq7xKn5lhxBwGTBfZ0HXGtFp05GfjZmQKN4knr1jbeDLCXafBIDQH9~w1oop-CaDYO-zXFmAJ4t2UsQjNWIV-zGr9wQ~vWCJkAb9rnGUPghEAWPHSmCFMR0CpPMkeswsWJPi62Da0aUrfihpEOt6hs5wPHJKbhTNbmI-bL1iIbw6gwErwkCkL4Hg__',
+      type: 'business',
+    },
+    message: 'You might be interested in Bralirwa, a Rwandan soft drinks industry.',
+    timestamp: new Date(new Date().setHours(new Date().getHours() - 5)),
+    read: true,
+    section: 'earlier',
+    time: '7:00',
+  },
+  {
+    id: '4',
+    type: 'system',
+    system: {
+      name: 'Aurelix',
+      logo: 'aurelix',
+    },
+    title: 'You can now access canaberra documents',
+    message: 'All documents of canaberra are now available',
+    timestamp: new Date(new Date().setDate(new Date().getDate() - 1)),
+    read: true,
+    section: 'yesterday',
+    time: '14:30',
+  },
+  {
+    id: '5',
+    type: 'system',
+    system: {
+      name: 'Aurelix',
+      logo: 'aurelix',
+    },
+    title: 'Welcome',
+    message: "Thank you for registering with Aurelix. Let's get started to connecting you with your preferred businesses all over the world",
+    timestamp: new Date(new Date().setDate(new Date().getDate() - 1)),
+    read: true,
+    section: 'yesterday',
+    time: '9:00',
+  },
+];
+
+const NotificationsScreen = ({ navigation, route }) => {
+  const [userType, setUserType] = useState<UserType>('entrepreneur');
+  const [notifications, setNotifications] = useState([]);
   const [menuVisible, setMenuVisible] = useState(false);
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const menuAnimation = useRef(new Animated.Value(0)).current;
+  
+  // Determine user type on component mount
+  useEffect(() => {
+    const determineUserType = async () => {
+      try {
+        if (route.params?.userType) {
+          setUserType(route.params.userType);
+        } else {
+          return null;
+        }
+        setNotifications(userType === 'entrepreneur' ? ENTREPRENEUR_NOTIFICATIONS : INVESTOR_NOTIFICATIONS);
+      } catch (error) {
+        console.error('Error determining user type:', error);
+        setNotifications(ENTREPRENEUR_NOTIFICATIONS);
+      }
+    };
+
+    determineUserType();
+  }, [route.params, userType]);
   
   // Filter notifications based on unread status if needed
   const displayedNotifications = showUnreadOnly 
@@ -169,23 +269,56 @@ const NotificationsScreen = ({ navigation }) => {
       markAsRead(notification.id);
     }
     
-    // Navigate based on notification type
+    // Navigate based on notification type and user type
     switch (notification.type) {
       case 'message':
-        // Navigate to chat with this user
-        console.log(`Navigate to chat with ${notification.user.name}`);
-        // navigation.navigate('Chat', { userId: notification.user.id });
+        // Navigate to chat with this user or business
+        if (userType === 'entrepreneur') {
+          // Entrepreneur viewing investor message
+          navigation.navigate('Chat', { 
+            investor: notification.user,
+            chatId: `chat-${notification.user.id}`
+          });
+        } else {
+          // Investor viewing business message
+          navigation.navigate('Chat', { 
+            business: notification.user,
+            chatId: `chat-${notification.user.id}`
+          });
+        }
         break;
       case 'interest':
         // Navigate to profile
-        console.log(`Navigate to profile of ${notification.user.name}`);
-        // navigation.navigate('Profile', { userId: notification.user.id });
+        if (userType === 'entrepreneur') {
+          // Entrepreneur viewing investor interest
+          navigation.navigate('MainProfile', { 
+            entity: notification.user,
+            entityType: 'investor'
+          });
+        } else {
+          // Investor viewing business interest
+          navigation.navigate('MainProfile', { 
+            entity: notification.user,
+            entityType: 'business'
+          });
+        }
         break;
       case 'system':
         if (notification.title.includes('documents')) {
-          // Navigate to document upload
-          console.log('Navigate to document upload');
-          // navigation.navigate('Documents');
+          // Navigate to document upload or view
+          if (userType === 'entrepreneur') {
+            navigation.navigate('BusinessDocuments');
+          } else {
+            // For investors, navigate to the business documents
+            const businessName = notification.message.split(' of ')[1]?.split(' are')[0];
+            if (businessName) {
+              navigation.navigate('MainProfile', { 
+                entityName: businessName,
+                entityType: 'business',
+                initialTab: 'documents'
+              });
+            }
+          }
         }
         break;
       default:
@@ -197,6 +330,15 @@ const NotificationsScreen = ({ navigation }) => {
   const renderNotificationItem = ({ item }) => {
     // Common timestamp display
     const timeDisplay = item.time || formatTime(item.timestamp);
+    
+    // Truncate message if longer than 45 characters
+    const truncateText = (text, maxLength = 30) => {
+      if (!text) return '';
+      if (text.length > maxLength) {
+        return text.substring(0, maxLength) + '...';
+      }
+      return text;
+    };
     
     // User notification (message or interest)
     if (item.type === 'message' || item.type === 'interest') {
@@ -212,13 +354,13 @@ const NotificationsScreen = ({ navigation }) => {
             <View style={styles.notificationHeader}>
               <Text style={styles.notificationTitle}>{item.user.name}</Text>
             </View>
-            <Text style={styles.notificationMessage} numberOfLines={2}>
+            <Text style={styles.notificationMessage}>
               {item.message}
             </Text>
           </View>
           <View style={styles.timeContainer}>
-                <Text style={styles.timeText}>{timeDisplay}</Text>
-                {!item.read && <View style={styles.unreadDot} />}
+            <Text style={styles.timeText}>{timeDisplay}</Text>
+            {!item.read && <View style={styles.unreadDot} />}
           </View>
         </TouchableOpacity>
       );
@@ -234,31 +376,28 @@ const NotificationsScreen = ({ navigation }) => {
         >
           <View style={styles.systemLogoContainer}>
           <GradientText 
-        text="Aurelix" 
-        colors={[
-          "rgba(252, 229, 105, 0.691272)", 
-          "rgba(253, 226, 77, 0.631532)", 
-          "rgba(254, 222, 50, 0.573927)", 
-          "rgba(251, 236, 151, 0.789524)", 
-          "#00A86B", 
-          "rgba(255, 215, 0, 0.466667)"
-        ]}
-        locations={[0.2375, 0.2375, 0.2375, 0.3484, 0.5092, 0.6888]}
-        start={{ x: 1.0, y: 0.0 }} 
-        end={{ x: 0.0, y: 1.0 }}  
-        style={styles.systemLogoBlack}
-      />
-            {/* <Text style={styles.systemLogoBlack}>Au</Text>
-            <Text style={styles.systemLogoGold}>re</Text>
-            <Text style={styles.systemLogoBlack}>lix</Text> */}
+            text="Aurelix" 
+            colors={[
+              "rgba(252, 229, 105, 0.691272)", 
+              "rgba(253, 226, 77, 0.631532)", 
+              "rgba(254, 222, 50, 0.573927)", 
+              "rgba(251, 236, 151, 0.789524)", 
+              "#00A86B", 
+              "rgba(255, 215, 0, 0.466667)"
+            ]}
+            locations={[0.2375, 0.2375, 0.2375, 0.3484, 0.5092, 0.6888]}
+            start={{ x: 1.0, y: 0.0 }} 
+            end={{ x: 0.0, y: 1.0 }}  
+            style={styles.systemLogoBlack}
+          />
           </View>
           
           <View style={styles.notificationContent}>
             <View style={styles.notificationHeader}>
-              <Text style={styles.notificationTitle}>{item.title}</Text>
+              <Text style={styles.notificationTitle}>{truncateText(item.title, 30)}</Text>
               <Text style={styles.timeText}>{timeDisplay}</Text>
             </View>
-            <Text style={styles.notificationMessage} numberOfLines={2}>
+            <Text style={styles.notificationMessage}>
               {item.message}
             </Text>
           </View>

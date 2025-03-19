@@ -13,82 +13,125 @@ import {
   RefreshControl,
 } from "react-native"
 import { Bell, Filter, ArrowDown, ArrowUp, Search } from "lucide-react-native"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 import StatusBar from "./Components/StatusBar"
 import SearchBar from "./Components/SearchBar"
 import StatCard from "./Components/StatCard"
 import FilterChip from "./Components/FilterChip"
 import ActionButton from "./Components/ActionButton"
-import InvestorCard from "./Components/InvestorCard"
+import EntityCard from "./Components/Card"
 import FilterPopup from "./Components/FilterPopup"
 import SortPopup from "./Components/SortPopup"
 
 // Types and Services
-import type { Investor, Region, FilterOption, SortOption } from "../index"
-import { fetchInvestors, fetchRegions, fetchStats, fetchSectors, fetchSortOptions } from "./mockup/api_home"
+import type { Business, Investor, Region, FilterOption, SortOption } from "../index"
+import { fetchInvestors, fetchRegions as fetchInvestorRegions, fetchStats as fetchInvestorStats, fetchSectors as fetchInvestorSectors, fetchSortOptions as fetchInvestorSortOptions } from "./mockup/api_home"
+import { fetchBusinesses, fetchRegions as fetchBusinessRegions, fetchStats as fetchBusinessStats, fetchSectors as fetchBusinessSectors, fetchSortOptions as fetchBusinessSortOptions } from "./mockup/api_investor"
 
 interface HomeScreenProps {
   navigation: any
+  route: any
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  // State
-  const [investors, setInvestors] = useState<Investor[]>([])
+type UserType = "entrepreneur" | "investor"
+
+const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, route }) => {
+
+  const [userType, setUserType] = useState<UserType>("entrepreneur")
+  const [userName, setUserName] = useState<string>("")
+  const [entities, setEntities] = useState<(Investor | Business)[]>([])
   const [regions, setRegions] = useState<Region[]>([])
   const [sectors, setSectors] = useState<FilterOption[]>([])
   const [sortOptions, setSortOptions] = useState<SortOption[]>([])
   const [stats, setStats] = useState({
-    visitors: "",
-    visitorsChange: "",
-    visitorsIncreasing: false,
-    newInvestors: "",
-    newInvestorsChange: "",
-    newInvestorsIncreasing: true,
+    profileViews: "10K",
+    profileViewsChange: "1.5%",
+    profileViewsIncreasing: false,
+    fundsRaised: "$100K",
+    fundsRaisedChange: "",
+    fundsRaisedIncreasing: true,
+    messages: "200+",
+    amountInvested: "$200K",
+    businessCount: "40+",
   })
 
-  // Filter and search state
   const [activeRegion, setActiveRegion] = useState<string>("All")
   const [activeSector, setActiveSector] = useState<string | undefined>(undefined)
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const [selectedSortOption, setSelectedSortOption] = useState<string | null>(null)
 
-  // UI state
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
   const [showFilterPopup, setShowFilterPopup] = useState<boolean>(false)
   const [showSortPopup, setShowSortPopup] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    const determineUserType = async () => {
+      try {
+        // First check route params for fresh login
+        if (route.params?.userType) {
+          setUserType(route.params.userType)
+        } else {
+          // Fallback to AsyncStorage for app restarts
+          const storedUserType = await AsyncStorage.getItem("@user_type")
+          if (storedUserType) {
+            setUserType(storedUserType as UserType)
+          }
+        }
+      } catch (error) {
+        console.error("Error determining user type:", error)
+      }
+    }
+    
+    determineUserType()
+  }, [route.params?.userType])
+  
+  useEffect(() => {
+    setUserName(userType === "investor" ? "Mark Robinson" : "Ange Curtis")
+  }, [userType])
+
   // Debounce search query
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery.trim().toLowerCase())
-    }, 300) // Reduced debounce time for better responsiveness
+    }, 300)
     return () => clearTimeout(handler)
   }, [searchQuery])
 
-  // Load initial data
+  // Load initial data based on user type
   const loadData = useCallback(async (showLoading = true) => {
     if (showLoading) setIsLoading(true)
     setError(null)
 
     try {
-      const [investorsData, regionsData, statsData, sectorsData, sortOptionsData] = await Promise.all([
-        fetchInvestors(),
-        fetchRegions(),
-        fetchStats(),
-        fetchSectors(),
-        fetchSortOptions(),
-      ])
+      let entitiesData, regionsData, statsData, sectorsData, sortOptionsData
 
-      setInvestors(investorsData)
+      if (userType === "investor") {
+        [entitiesData, regionsData, statsData, sectorsData, sortOptionsData] = await Promise.all([
+          fetchBusinesses(),
+          fetchBusinessRegions(),
+          fetchBusinessStats(),
+          fetchBusinessSectors(),
+          fetchBusinessSortOptions(),
+        ])
+      } else {
+        [entitiesData, regionsData, statsData, sectorsData, sortOptionsData] = await Promise.all([
+          fetchInvestors(),
+          fetchInvestorRegions(),
+          fetchInvestorStats(),
+          fetchInvestorSectors(),
+          fetchInvestorSortOptions(),
+        ])
+      }
+
+      setEntities(entitiesData)
       setRegions(regionsData)
-      setStats(statsData)
       setSectors(sectorsData)
       setSortOptions(sortOptionsData)
 
-      // Find the active region from the fetched data
       const activeRegionData = regionsData.find((r) => r.active)
       if (activeRegionData) {
         setActiveRegion(activeRegionData.name)
@@ -99,38 +142,44 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [userType])
 
-  // Load investors based on filters
-  const loadInvestors = useCallback(async () => {
+  // Load entities based on filters
+  const loadEntities = useCallback(async () => {
     try {
       setIsLoading(true)
-      const data = await fetchInvestors(activeRegion, activeSector, selectedSortOption, debouncedSearchQuery)
-      setInvestors(data)
+      let data
+
+      if (userType === "investor") {
+        data = await fetchBusinesses(activeRegion, activeSector, selectedSortOption, debouncedSearchQuery)
+      } else {
+        data = await fetchInvestors(activeRegion, activeSector, selectedSortOption, debouncedSearchQuery)
+      }
+
+      setEntities(data)
       setError(null)
     } catch (error) {
-      console.error("Error loading investors:", error)
-      setInvestors([])
-      setError("Failed to load investors. Please try again.")
+      console.error(`Error loading ${userType === "investor" ? "businesses" : "investors"}:`, error)
+      setEntities([])
+      setError(`Failed to load ${userType === "investor" ? "businesses" : "investors"}. Please try again.`)
     } finally {
       setIsLoading(false)
     }
-  }, [activeRegion, activeSector, selectedSortOption, debouncedSearchQuery])
+  }, [userType, activeRegion, activeSector, selectedSortOption, debouncedSearchQuery])
 
   // Initial data load
   useEffect(() => {
     const abortController = new AbortController()
     loadData()
     return () => abortController.abort()
-  }, [])
+  }, [loadData, userType])
 
-  // Load investors when filters change
+  // Load entities when filters change
   useEffect(() => {
     if (regions.length > 0) {
-      // Only load if regions are already fetched
-      loadInvestors()
+      loadEntities()
     }
-  }, [loadInvestors, regions.length])
+  }, [loadEntities, regions.length])
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
@@ -162,18 +211,30 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setShowFilterPopup(false)
   }, [])
 
-  const handleInvestorPress = useCallback(
-    (investor: Investor) => {
-      navigation.navigate("InvestorHome", { investor })
+  const handleEntityPress = useCallback(
+    (entity: Business | Investor) => {
+      if (userType === "investor") {
+        navigation.navigate("MainProfile", { 
+          entity: entity, 
+          entityType: "business"
+        });
+      } else { 
+        navigation.navigate("MainProfile", { 
+          entity: entity, 
+          entityType: "investor"
+        });
+      }
     },
-    [navigation],
-  )
-
+    [navigation, userType]
+  );
+  
   const handleChatPress = useCallback(
-    (investor: Investor) => {
-      navigation.navigate("Chat", { investor })
+    (entity: Business | Investor) => {
+      navigation.navigate("Chat", { 
+        [userType === "investor" ? "business" : "investor"]: entity 
+      })
     },
-    [navigation],
+    [navigation, userType],
   )
 
   const handleClearSearch = useCallback(() => {
@@ -181,12 +242,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }, [])
 
   // Memoized values
-  const currentSortName = useMemo(() => {
-    if (!selectedSortOption) return "Sort"
-    const option = sortOptions.find((opt) => opt.id === selectedSortOption)
-    return option ? option.name.split(" ")[0] : "Sort"
-  }, [selectedSortOption, sortOptions])
-
   const sortDirectionIcon = useMemo(() => {
     if (!selectedSortOption) return null
     const option = sortOptions.find((opt) => opt.id === selectedSortOption)
@@ -194,21 +249,34 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return option.direction === "asc" ? <ArrowUp size={14} color="#232327" /> : <ArrowDown size={14} color="#232327" />
   }, [selectedSortOption, sortOptions])
 
-
   // Render functions
-  const renderInvestorItem = useCallback(
-    ({ item, index }: { item: Investor; index: number }) => (
-      <InvestorCard
-        investor={{
-          ...item,
-          image: item.image,
-        }}
-        onPress={() => handleInvestorPress(item)}
-        onChatPress={() => handleChatPress(item)}
-        style={index % 2 === 0 ? { marginRight: 8 } : { marginLeft: 8 }}
-      />
-    ),
-    [handleInvestorPress, handleChatPress],
+  const renderEntityItem = useCallback(
+    ({ item, index }: { item: Business | Investor; index: number }) => {
+      const isInvestor = userType === "entrepreneur"
+      
+      return (
+        <View style={isInvestor ? styles.entityCardContainer : styles.businessCardContainer}>
+          <EntityCard
+            entity={{
+              id: item.id,
+              name: item.name,
+              image: item.image,
+              location: item.location,
+              industry: item.industry,
+              // For businesses
+              investors: isInvestor ? undefined : (item as Business).investors,
+              // For investors
+              investments: isInvestor ? (item as Investor).investments : undefined,
+            }}
+            type={isInvestor ? "investor" : "business"}
+            onPress={() => handleEntityPress(item)}
+            onChatPress={() => handleChatPress(item)}
+            style={isInvestor && index % 2 === 0 ? { marginRight: 8 } : isInvestor && index % 2 === 1 ? { marginLeft: 8 } : undefined}
+          />
+        </View>
+      )
+    },
+    [userType, handleEntityPress, handleChatPress],
   )
 
   const renderHeader = useCallback(
@@ -217,11 +285,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <View style={styles.header}>
           <View>
             <Text style={styles.welcomeText}>Hello, Welcome👋</Text>
-            <Text style={styles.userName}>Ange Curtis</Text>
+            <Text style={styles.userName}>{userName}</Text>
           </View>
           <TouchableOpacity
             style={styles.notificationButton}
-            onPress={() => navigation.navigate("Notifications")}
+            onPress={() => navigation.navigate("Notifications", { userType: userType })}
             accessibilityLabel="Notifications"
           >
             <Bell size={24} color="#000000" />
@@ -230,7 +298,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         <View style={styles.searchContainer}>
           <SearchBar
-            placeholder="Search investors..."
+            placeholder={userType === "investor" ? "Search enterprises..." : "Search investors..."}
             onChangeText={setSearchQuery}
             value={searchQuery}
             onClear={handleClearSearch}
@@ -238,18 +306,50 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         </View>
 
         <View style={styles.statsContainer}>
-          <StatCard
-            value={stats.visitors}
-            label="Visitors this year"
-            percentage={stats.visitorsChange}
-            isIncreasing={stats.visitorsIncreasing}
-          />
-          <StatCard
-            value={stats.newInvestors}
-            label="New investors this year"
-            percentage={stats.newInvestorsChange}
-            isIncreasing={stats.newInvestorsIncreasing}
-          />
+          {userType === "investor" ? (
+            <>
+              <StatCard
+                value={stats.amountInvested}
+                label="Amount invested"
+                percentage=""
+                isIncreasing={true}
+              />
+              <StatCard
+                value={stats.businessCount}
+                label="Businesses"
+                percentage=""
+                isIncreasing={true}
+              />
+              <StatCard
+                value={stats.messages}
+                label="Messages"
+                percentage=""
+                isIncreasing={true}
+              />
+            </>
+          ) : (
+            // Stats for entrepreneur view
+            <>
+              <StatCard
+                value={stats.profileViews}
+                label="Profile views"
+                percentage={stats.profileViewsChange}
+                isIncreasing={stats.profileViewsIncreasing}
+              />
+              <StatCard
+                value={stats.fundsRaised}
+                label="Funds raised"
+                percentage={stats.fundsRaisedChange}
+                isIncreasing={stats.fundsRaisedIncreasing}
+              />
+              <StatCard
+                value={stats.messages}
+                label="Messages"
+                percentage=""
+                isIncreasing={true}
+              />
+            </>
+          )}
         </View>
 
         <FlatList
@@ -266,9 +366,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <View style={styles.matchesHeader}>
           <Text style={styles.matchesTitle}>Top matches</Text>
           <View style={styles.matchesActions}>
-          <ActionButton
-              label={`Sort ${selectedSortOption ? "" : "↓"}`}
-              icon={sortDirectionIcon}
+            <ActionButton
+              label="Sort"
+              icon={<ArrowDown size={14} color="#232327" />}
               onPress={() => setShowSortPopup(true)}
               style={[styles.actionButton, selectedSortOption ? styles.activeActionButton : null]}
               textStyle={selectedSortOption ? styles.activeActionText : null}
@@ -300,12 +400,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       </View>
     ),
     [
+      userName,
+      userType,
       stats,
       regions,
       searchQuery,
-      currentSortName,
-      sortDirectionIcon,
       selectedSortOption,
+      sortDirectionIcon,
       activeSector,
       handleRegionPress,
       handleClearSearch,
@@ -320,20 +421,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <>
             <Search size={40} color="#A3A2A3" style={{ marginBottom: 10 }} />
             <Text style={styles.emptyTitle}>No results found</Text>
-            <Text style={styles.emptyText}>We couldn't find any investors matching "{debouncedSearchQuery}"</Text>
+            <Text style={styles.emptyText}>
+              We couldn't find any {userType === "investor" ? "businesses" : "investors"} matching "{debouncedSearchQuery}"
+            </Text>
             <TouchableOpacity style={styles.clearSearchButton} onPress={handleClearSearch}>
               <Text style={styles.clearSearchText}>Clear search</Text>
             </TouchableOpacity>
           </>
         ) : (
           <>
-            <Text style={styles.emptyTitle}>No investors found</Text>
+            <Text style={styles.emptyTitle}>No {userType === "investor" ? "businesses" : "investors"} found</Text>
             <Text style={styles.emptyText}>Try adjusting your filters or search criteria</Text>
           </>
         )}
       </View>
     ),
-    [debouncedSearchQuery, handleClearSearch],
+    [debouncedSearchQuery, handleClearSearch, userType],
   )
 
   const renderError = useCallback(
@@ -348,7 +451,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     [error, loadData],
   )
 
-  if (isLoading && !isRefreshing && investors.length === 0) {
+  if (isLoading && !isRefreshing && entities.length === 0) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00a86b" />
@@ -363,23 +466,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       {error && !isRefreshing ? (
         renderError()
       ) : (
-         <View style={styles.container}>
-        <FlatList
-          data={investors}
-          renderItem={renderInvestorItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={styles.investorRow}
-          contentContainerStyle={styles.investorList}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmptyList}
-          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#00a86b"]} />}
-          showsVerticalScrollIndicator={false}
-          initialNumToRender={8}
-          maxToRenderPerBatch={10}
-          windowSize={10}
-          removeClippedSubviews={true}
-        />
+        <View style={styles.container}>
+          <FlatList
+            data={entities}
+            renderItem={renderEntityItem}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={styles.entityList}
+            columnWrapperStyle={styles.entityRow}
+            ListHeaderComponent={renderHeader}
+            ListEmptyComponent={renderEmptyList}
+            refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#00a86b"]} />}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={8}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            removeClippedSubviews={true}
+          />
         </View>
       )}
 
@@ -485,16 +588,19 @@ const styles = StyleSheet.create({
     color: "#00a86b",
     fontFamily: "Poppins-Medium",
   },
-  investorList: {
+  entityList: {
     paddingBottom: 16,
   },
-  investorRow: {
+  entityRow: {
     justifyContent: "space-between",
     paddingHorizontal: 16,
     marginBottom: 16,
   },
+  entityCardContainer: {
+    width: "48.5%",
+  },
   businessCardContainer: {
-    width: "48.5%", 
+    width: "48.5%",
   },
   emptyContainer: {
     padding: 40,
@@ -586,4 +692,3 @@ const styles = StyleSheet.create({
 })
 
 export default HomeScreen
-

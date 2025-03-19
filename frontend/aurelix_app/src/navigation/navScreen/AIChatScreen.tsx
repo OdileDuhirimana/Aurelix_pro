@@ -1,25 +1,20 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  Image, 
   TextInput, 
   SafeAreaView, 
   StatusBar,
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  ImageStyle,
-  ImageBackground,
-  Animated,
-  Easing
+  ImageBackground
 } from 'react-native';
 import { ChevronLeft, Play, Paperclip, Mic, Send } from 'lucide-react-native';
 import Loader from 'react-native-three-dots';
 
-// Define TypeScript interfaces for data structures
 interface Message {
   id: string;
   text: string;
@@ -31,13 +26,8 @@ interface VideoFeedback {
   id: string;
   videoUrl: string;
   thumbnailUrl: string;
-  feedback?: string;
 }
 
-// Context to manage the messages globally (for scalability)
-const MessagesContext = React.createContext<any>(null);
-
-// Simulating backend data fetching
 const simulateBackendResponse = (inputText: string): Promise<Message> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -51,7 +41,6 @@ const simulateBackendResponse = (inputText: string): Promise<Message> => {
   });
 };
 
-// Message bubble component
 const MessageBubble = ({ message }: { message: Message }) => {
   const isUser = message.sender === 'user';
   return (
@@ -61,14 +50,13 @@ const MessageBubble = ({ message }: { message: Message }) => {
         isUser ? styles.userBubble : styles.aiBubble
       ]}
     >
-      <Text style={isUser? styles.messageTextUser : styles.messageText}>{message.text}</Text>
+      <Text style={isUser ? styles.messageTextUser : styles.messageText}>{message.text}</Text>
     </View>
   );
 };
 
 const VideoPlayer = ({ videoUrl, thumbnailUrl }: VideoFeedback) => {
   const handlePlayVideo = () => {
-    // Simulate video play action
     console.log('Playing video:', videoUrl);
   };
 
@@ -80,7 +68,6 @@ const VideoPlayer = ({ videoUrl, thumbnailUrl }: VideoFeedback) => {
       <ImageBackground 
         source={{ uri: thumbnailUrl }} 
         style={styles.videoThumbnail}
-         // For customizing the background image
       >
         <View style={styles.playButton}>
           <Play size={24} color="#171725" fill="#ffffff" />
@@ -90,12 +77,42 @@ const VideoPlayer = ({ videoUrl, thumbnailUrl }: VideoFeedback) => {
   );
 };
 
-const AIScreen = () => {
+const AIScreen = ({ route, navigation }) => {
+  const initialMessage = route?.params?.initialMessage || '';
+  
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (initialMessage) {
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        text: initialMessage,
+        sender: 'user',
+        timestamp: new Date(),
+      };
+      setMessages([userMessage]);
+      handleInitialResponse(initialMessage);
+    }
+  }, [initialMessage]);
+
+  const handleInitialResponse = async (text: string) => {
+    setIsLoading(true);
+    try {
+      const aiMessage = await simulateBackendResponse(text);
+      setMessages(prevMessages => [...prevMessages, aiMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  };
 
   const addMessage = (message: Message) => {
     setMessages(prevMessages => [...prevMessages, message]);
@@ -104,7 +121,6 @@ const AIScreen = () => {
   const handleSend = async () => {
     if (inputText.trim() === '') return;
     
-    // Add user message to state
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputText,
@@ -116,7 +132,6 @@ const AIScreen = () => {
     setInputText('');
     setIsLoading(true);
     
-    // Simulate API call and get AI response
     try {
       const aiMessage = await simulateBackendResponse(inputText);
       addMessage(aiMessage);
@@ -124,7 +139,6 @@ const AIScreen = () => {
       console.error('Error sending message:', error);
     } finally {
       setIsLoading(false);
-      // Scroll to bottom after AI response
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
@@ -132,16 +146,13 @@ const AIScreen = () => {
   };
 
   const handleRecording = () => {
-    // Toggle recording state (simulate audio recording)
     setIsRecording(!isRecording);
   };
 
   const handleAttachment = () => {
-    // Simulate attachment action
     console.log('Attachment button pressed');
   };
 
-  // Render messages using FlatList for performance
   const renderMessage = ({ item }: { item: Message }) => <MessageBubble message={item} />;
 
   return (
@@ -151,40 +162,35 @@ const AIScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
             <ChevronLeft size={24} color="#171725" />
           </TouchableOpacity>
           <Text style={styles.title}>AI pitch coach</Text>
-          {/* <View style={styles.placeholder} /> */}
         </View>
-
-        {/* Chat content */}
-        <FlatList 
-          ref={scrollViewRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.chatContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Video thumbnail */}
+        <View style={styles.chatContainer}>
           <VideoPlayer 
             id='1'
             videoUrl="https://example.com/video.mp4" 
             thumbnailUrl="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/InveConnect-6sTve3hGqyi1Cm4zpGjDrR09Tw5RbP.png#crop=400,200,700,400"
           />
-        </FlatList>
-
-        {/* Loading indicator */}
+          <FlatList 
+            ref={scrollViewRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.chatContent}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
         {isLoading && (
           <View style={styles.loadingContainer}>
-          <Loader color='#00a86b' speed={150}/>
+            <Loader color='#00a86b' speed={150} />
           </View>
         )}
-
-        {/* Input area */}
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
             <TextInput
@@ -213,17 +219,13 @@ const AIScreen = () => {
             onPress={handleSend}
             disabled={inputText.trim() === ''}
           >
-            <Send size={20} color="#ffffff" fill="#00a86b" />
+            <Send size={20} color="#ffffff" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
-
-
-export default AIScreen;
-
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -253,19 +255,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#221F1F',
   },
-  // placeholder: {
-  //   width: 40,
-  // },
   chatContainer: {
     flex: 1,
+    paddingHorizontal: 16,
   },
   chatContent: {
-    padding: 16,
     paddingBottom: 24,
   },
   videoContainer: {
     alignSelf: 'flex-end',
-    marginBottom: 16,
+    marginVertical: 16,
     borderRadius: 12,
     overflow: 'hidden',
     width: '60%',
@@ -275,8 +274,8 @@ const styles = StyleSheet.create({
   videoThumbnail: {
     width: '100%',
     height: '100%',
-    justifyContent: 'center', // Center the play button
-    alignItems: 'center', // Center the play button
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   playButton: {
     position: 'absolute',
@@ -299,12 +298,10 @@ const styles = StyleSheet.create({
   userBubble: {
     alignSelf: 'flex-end',
     backgroundColor: '#00a86b',
-    borderBottomLeftRadius: 4,
   },
   aiBubble: {
     alignSelf: 'flex-start',
     backgroundColor: '#f0f0f0',
-    borderBottomRightRadius: 4,
   },
   messageText: {
     fontSize: 16,
@@ -323,16 +320,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#f0f0f0',
     padding: 12,
-    margin: 20,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#737373',
-  },
-  dots: {
-    fontSize: 14,
-    color: '#737373',
-    marginLeft: 4,
+    marginHorizontal: 20,
+    marginVertical: 10,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -372,7 +361,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 12,
   },
-  imageStyle: {
-    borderRadius: 12, // Rounded corners for the image inside ImageBackground
-  },
 });
+
+export default AIScreen;

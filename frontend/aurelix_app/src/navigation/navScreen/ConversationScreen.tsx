@@ -88,8 +88,6 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       setError(null);
       setIsLoading(true);
-      
-      // Fetch participant profile and messages in parallel
       const [participantData, messagesData] = await Promise.all([
         API.getUserProfile(participantId),
         API.getConversationMessages(conversationId)
@@ -98,15 +96,6 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
       setParticipant(participantData);
       setMessages(messagesData.messages);
       setHasMoreMessages(messagesData.hasMore);
-      
-      // // Mark unread messages as read
-      // const unreadMessageIds = messagesData.messages
-      //   .filter(msg => msg.senderId === participantId && msg.status !== 'read')
-      //   .map(msg => msg.id);
-      
-      // if (unreadMessageIds.length > 0) {
-      //   API.markMessagesAsRead(conversationId, unreadMessageIds);
-      // }
     } catch (error) {
       console.error('Error fetching initial data:', error);
       setError('Failed to load conversation. Please try again.');
@@ -317,22 +306,6 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
       messages
     }));
   };
-  
-  // Render message status indicator
-  // const renderMessageStatus = (status: Message['status']) => {
-  //   switch (status) {
-  //     case 'sent':
-  //       return <Text style={styles.messageStatus}>✓</Text>;
-  //     case 'delivered':
-  //       return <Text style={styles.messageStatus}>✓✓</Text>;
-  //     case 'read':
-  //       return <Text style={styles.messageStatusRead}>✓✓</Text>;
-  //     case 'failed':
-  //       return <Text style={styles.messageStatusFailed}>!</Text>;
-  //     default:
-  //       return null;
-  //   }
-  // };
   
   // Render message bubble
   const renderMessage = (message: Message) => {

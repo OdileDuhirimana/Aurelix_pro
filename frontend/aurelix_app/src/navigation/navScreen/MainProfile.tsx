@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
   FlatList,
+  Linking,
 } from "react-native"
 import {
   ChevronLeft,
@@ -24,66 +25,91 @@ import {
 } from "lucide-react-native"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { StackNavigationProp } from "@react-navigation/stack"
-import type { Business, Investor } from "../index"
-import { API } from "./mockup/api_business_profile"
+import type { Business, Investor, Investor2 } from "../index"
+import { API as BusinessAPI } from "./mockup/api_business_profile"
+import { API as InvestorAPI } from "./mockup/api_ivestor"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
-type BusinessProfileScreenNavigationProp = StackNavigationProp<
+type MainProfileScreenNavigationProp = StackNavigationProp<
   any,
-  "BusinessProfile"
+  "Profile"
 >
 
 interface Props {
-  navigation: BusinessProfileScreenNavigationProp
+  navigation: MainProfileScreenNavigationProp
   route: {
     params: {
-      businessId: string
-      business: Business
+      entityId?: string
+      entity?: Business | Investor | Investor2
+      entityType: "business" | "investor"
     }
   }
 }
 
-const BusinessProfileScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { business } = route.params
-  const [similarBusinesses, setSimilarBusinesses] = useState<Business[]>([])
+const MainProfileScreen: React.FC<Props> = ({ navigation, route }) => {
+  // Extract params
+  const { entityId, entity: initialEntity, entityType } = route.params
+  
+  // State
+  const [entity, setEntity] = useState<Business | Investor | Investor2 | null>(initialEntity || null)
+  const [similarEntities, setSimilarEntities] = useState<(Business | Investor | Investor2)[]>([])
   const [totalSimilar, setTotalSimilar] = useState<number>(0)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState<boolean>(!initialEntity)
   const [isLoadingSimilar, setIsLoadingSimilar] = useState<boolean>(true)
   const [sortOption, setSortOption] = useState<string>("relevance")
   const [filterOptions, setFilterOptions] = useState<string[]>([])
-  const [businessDetails, setBusinessDetails] = useState<Business | null>(null)
+  const [userType, setUserType] = useState<"entrepreneur" | "investor">("entrepreneur")
 
-  // Fetch business profile on component mount
   useEffect(() => {
-    fetchBusinessProfile()
-    fetchSimilarBusinesses()
+    const determineUserType = async () => {
+      try {
+        const storedUserType = await AsyncStorage.getItem("@user_type")
+        if (storedUserType === "investor" || storedUserType === "entrepreneur") {
+          setUserType(storedUserType as "entrepreneur" | "investor")
+        }
+      } catch (error) {
+        console.error("Error determining user type:", error)
+      }
+    }
+
+    determineUserType()
   }, [])
 
-  // Fetch similar businesses when sort or filter changes
-  useEffect(() => {
-    fetchSimilarBusinesses()
-  }, [sortOption, filterOptions])
 
-  const fetchBusinessProfile = async () => {
+  useEffect(() => {
+    if (!initialEntity && entityId) {
+      fetchEntityProfile()
+    }
+    fetchSimilarEntities()
+  }, [initialEntity, entityId])
+
+  useEffect(() => {
+    fetchSimilarEntities()
+  }, [sortOption, filterOptions, entity])
+
+  const fetchEntityProfile = async () => {
+    if (!entityId) return
+    
     try {
       setIsLoading(true)
-      // If we already have the business data from route params, use it
-      if (business) {
-        setBusinessDetails(business)
-        setIsLoading(false)
-        return
-      }
       
-      // Otherwise fetch from API
-      const data = await API.getBusinessProfile(route.params.businessId)
-      setBusinessDetails(data)
+      if (entityType === "business") {
+        const data = await BusinessAPI.getBusinessProfile(entityId)
+        setEntity(data)
+      } else {
+        const data = await InvestorAPI.getInvestorProfile(entityId)
+        setEntity(data)
+      }
     } catch (error) {
-      console.error("Error fetching business profile:", error)
+      console.error(`Error fetching ${entityType} profile:`, error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const fetchSimilarBusinesses = async () => {
+  const fetchSimilarEntities = async () => {
+    if (!entity) return
+    
     try {
       setIsLoadingSimilar(true)
       const params = {
@@ -91,28 +117,36 @@ const BusinessProfileScreen: React.FC<Props> = ({ navigation, route }) => {
         filter: filterOptions.join(","),
       }
       
-      // Use business ID from route params or from the business object
-      const businessId = route.params.businessId || (business ? business.id : null)
-      
-      if (!businessId) {
-        throw new Error("Business ID not available")
+      let data
+      if (entityType === "business") {
+        data = await BusinessAPI.getSimilarInvestors(entity.id, params)
+        setSimilarEntities(data.businesses || [])
+        setTotalSimilar(data.total || 0)
+      } else {
+        data = await InvestorAPI.getSimilarInvestors(entity.id, params)
+        setSimilarEntities(data.investors || [])
+        setTotalSimilar(data.total || 0)
       }
-      
-      const data = await API.getSimilarBusinesses(businessId, params)
-      setSimilarBusinesses(data.businesses)
-      setTotalSimilar(data.total)
     } catch (error) {
-      console.error("Error fetching similar businesses:", error)
-      setSimilarBusinesses([])
+      console.error(`Error fetching similar ${entityType}s:`, error)
+      setSimilarEntities([])
       setTotalSimilar(0)
     } finally {
       setIsLoadingSimilar(false)
     }
   }
 
-  const handleInitiateChat = async (targetBusinessId: string) => {
+  const handleInitiateChat = async (targetId: string) => {
     try {
-      const { chatId } = await API.initiateChat(targetBusinessId)
+      let chatId
+      if (entityType === "business") {
+        const response = await BusinessAPI.initiateChat(targetId)
+        chatId = response.chatId
+      } else {
+        const response = await InvestorAPI.initiateChat(targetId)
+        chatId = response.chatId
+      }
+      
       navigation.navigate("Chat", { chatId })
     } catch (error) {
       console.error("Error initiating chat:", error)
@@ -120,34 +154,68 @@ const BusinessProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   }
 
   const handleSort = () => {
-    const options = ["relevance", "investorCount", "alphabetical"]
+    const options = ["relevance", entityType === "business" ? "investorCount" : "investmentCount", "alphabetical"]
     const currentIndex = options.indexOf(sortOption)
     const nextIndex = (currentIndex + 1) % options.length
     setSortOption(options[nextIndex])
   }
 
   const handleFilter = () => {
-    navigation.navigate("BusinessFilters", {
+    navigation.navigate(`${entityType === "business" ? "Business" : "Investor"}Filters`, {
       currentFilters: filterOptions,
       onApplyFilters: (filters: string[]) => setFilterOptions(filters),
     })
   }
 
-  const renderSimilarBusinessItem = ({ item }: { item: Business }) => (
+  const handleContactPress = (type: string, value?: string) => {
+    if (!value) return
+    
+    switch (type) {
+      case "phone":
+        Linking.openURL(`tel:${value}`)
+        break
+      case "email":
+        Linking.openURL(`mailto:${value}`)
+        break
+      case "website":
+        Linking.openURL(value.startsWith("http") ? value : `https://${value}`)
+        break
+      case "linkedin":
+        Linking.openURL(value)
+        break
+      case "twitter":
+        Linking.openURL(value)
+        break
+    }
+  }
+
+  const renderSimilarEntityItem = ({ item }: { item: Business | Investor | Investor2 }) => (
     <TouchableOpacity 
-      style={styles.similarBusinessCard}
-      onPress={() => navigation.navigate("BusinessProfile", { business: item })}
+      style={styles.similarEntityCard}
+      onPress={() => navigation.navigate("MainProfile", { 
+        entity: item, 
+        entityType: entityType,
+      })}
     >
       <Image 
-        source={{ uri: item.image }} 
-        style={styles.similarBusinessImage}
+        source={{ uri: entityType === "business" ? item.image : (item as Investor2).profileImage || item.image }} 
+        style={styles.similarEntityImage}
         resizeMode="cover"
       />
-      <Text style={styles.similarBusinessName} numberOfLines={1}>{item.name}</Text>
-      <Text style={styles.investorCount}>
-        <Text style={styles.greenText}>{item.investors}</Text> Investors
-      </Text>
+      <Text style={styles.similarEntityName} numberOfLines={1}>{item.name}</Text>
+      
+      {entityType === "business" ? (
+        <Text style={styles.countText}>
+          <Text style={styles.greenText}>{(item as Business).investors}</Text> Investors
+        </Text>
+      ) : (
+        <Text style={styles.countText}>
+          <Text style={styles.greenText}>{(item as Investor2).investmentCount || (item as Investor).investments}</Text>+ Investments
+        </Text>
+      )}
+      
       <Text style={styles.industryText1}>{item.industry}</Text>
+      
       <View style={styles.locationRow}>
         <Text style={styles.locationText}>{item.location}</Text>
         <TouchableOpacity onPress={() => handleInitiateChat(item.id)}>
@@ -165,13 +233,10 @@ const BusinessProfileScreen: React.FC<Props> = ({ navigation, route }) => {
     )
   }
 
-  // Use either the business from route params or the fetched business details
-  const displayBusiness = businessDetails || business
-
-  if (!displayBusiness) {
+  if (!entity) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <Text style={styles.errorText}>Business not found</Text>
+        <Text style={styles.errorText}>{entityType === "business" ? "Business" : "Investor"} not found</Text>
         <TouchableOpacity 
           style={styles.retryButton}
           onPress={() => navigation.goBack()}
@@ -182,11 +247,20 @@ const BusinessProfileScreen: React.FC<Props> = ({ navigation, route }) => {
     )
   }
 
+  // Determine if we're viewing a business or investor
+  const isBusiness = entityType === "business"
+  
+  const countValue = isBusiness 
+    ? (entity as Business).investors 
+    : (entity as Investor).investments || (entity as Investor2).investmentCount
+  
+
+  const countLabel = isBusiness ? "Investors" : "Investments made so far"
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
@@ -196,70 +270,120 @@ const BusinessProfileScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.chatButton}
-            onPress={() => handleInitiateChat(displayBusiness.id)}
+            onPress={() => handleInitiateChat(entity.id)}
           >
             <MessageCircle size={24} color="#00a86b" />
           </TouchableOpacity>
         </View>
 
-        {/* Business Profile Section */}
+        {/* Entity Profile Section */}
         <View style={styles.profileSection}>
           <Image
-            source={{ uri: displayBusiness.image }}
-            style={styles.profileImage}
+            source={{ uri: isBusiness ? entity.image : (entity as Investor2).profileImage || entity.image }}
+            style={[
+              styles.profileImage,
+              isBusiness ? styles.businessImage : styles.investorImage
+            ]}
             resizeMode="cover"
           />
 
           <View style={styles.nameSection}>
-            <Text style={styles.nameText}>{displayBusiness.name}</Text>
-            <View style={styles.contactButtons}>
-              <TouchableOpacity style={styles.contactButton}>
-                <Phone size={20} color="#000000" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.contactButton}>
-                <Mail size={20} color="#000000" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.contactButton}>
-                <Globe size={20} color="#000000" />
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.nameText}>{entity.name}</Text>
+            
+            {isBusiness ? (
+              // Business contact buttons
+              <View style={styles.contactButtons}>
+                <TouchableOpacity 
+                  style={styles.contactButton}
+                  onPress={() => handleContactPress("phone", (entity as Business).phone)}
+                >
+                  <Phone size={20} color="#000000" />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.contactButton}
+                  onPress={() => handleContactPress("email", (entity as Business).email)}
+                >
+                  <Mail size={20} color="#000000" />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.contactButton}
+                  onPress={() => handleContactPress("website", (entity as Business).website)}
+                >
+                  <Globe size={20} color="#000000" />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              // Investor social links
+              <View style={styles.socialLinks}>
+                {(entity as Investor2).socialLinks?.linkedin && (
+                  <TouchableOpacity 
+                    style={styles.socialButton}
+                    onPress={() => handleContactPress("linkedin", (entity as Investor2).socialLinks?.linkedin)}
+                  >
+                     <Text style={styles.socialIcon}>in</Text>
+                  </TouchableOpacity>
+                )}
+                {(entity as Investor2).socialLinks?.twitter && (
+                  <TouchableOpacity 
+                    style={styles.socialButton}
+                    onPress={() => handleContactPress("twitter", (entity as Investor2).socialLinks?.twitter)}
+                  >
+                    <Text style={styles.socialIcon}>𝕏</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
           </View>
 
-          <Text style={styles.investorCount}>
-            <Text style={styles.greenText}>{displayBusiness.investors}</Text> Investors
+          <Text style={styles.countText}>
+            <Text style={styles.greenText}>{countValue}</Text> {countLabel}
           </Text>
 
-          <Text style={styles.industryText}>{displayBusiness.industry}</Text>
+          <Text style={styles.industryText}>{entity.industry}</Text>
 
-          {displayBusiness.description && (
-            <Text style={styles.descriptionText}>{displayBusiness.description}</Text>
+          {/* Description/Bio */}
+          {isBusiness ? (
+            (entity as Business).description && (
+              <Text style={styles.descriptionText}>{(entity as Business).description}</Text>
+            )
+          ) : (
+            (entity as Investor2).bio && (
+              <Text style={styles.descriptionText}>{(entity as Investor2).bio}</Text>
+            )
           )}
 
-          <View style={styles.actionButtonsContainer}>
-            <TouchableOpacity style={styles.actionButtonGreen}>
-              <MaterialCommunityIcons name="cube-outline" size={24} color="#ffff" />
-              <Text style={styles.actionButtonTextWhite}>AR View</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionButtonOutline}>
-              <Play size={18} color="#000000" />
-              <Text style={styles.actionButtonText}>Pitch Video</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionButtonOutline}>
-              <FileText size={18} color="#000000" />
-              <Text style={styles.actionButtonText}>Documents</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Action buttons for business only */}
+          {isBusiness && (
+            <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity style={styles.actionButtonGreen}>
+                <MaterialCommunityIcons name="cube-outline" size={24} color="#ffff" />
+                <Text style={styles.actionButtonTextWhite}>AR View</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.actionButtonOutline}>
+                <Play size={18} color="#000000" />
+                <Text style={styles.actionButtonText}>Pitch Video</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.actionButtonOutline}>
+                <FileText size={18} color="#000000" />
+                <Text style={styles.actionButtonText}>Documents</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
-        {/* Similar Businesses Section */}
+        {/* Similar Entities Section */}
         <View style={styles.similarSection}>
-          <Text style={styles.sectionTitle}>You might be interested in</Text>
+          <Text style={styles.sectionTitle}>
+            {isBusiness ? "You might be interested in" : "Similar Investors"}
+          </Text>
           
           <View style={styles.similarHeader}>
             <Text style={styles.totalCount}>
-              {totalSimilar > 0 ? `${totalSimilar}+ Businesses` : "No similar businesses"}
+              {totalSimilar > 0 
+                ? `${totalSimilar}+ ${isBusiness ? "Businesses" : "People"}` 
+                : `No similar ${isBusiness ? "businesses" : "investors"}`}
             </Text>
             
             <View style={styles.actionButtons}>
@@ -305,15 +429,17 @@ const BusinessProfileScreen: React.FC<Props> = ({ navigation, route }) => {
             />
           ) : (
             <FlatList
-              data={similarBusinesses}
-              renderItem={renderSimilarBusinessItem}
+              data={similarEntities}
+              renderItem={renderSimilarEntityItem}
               keyExtractor={(item) => item.id}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.similarBusinessesList}
+              contentContainerStyle={styles.similarEntitiesList}
               ListEmptyComponent={() => (
                 <View style={styles.emptyListContainer}>
-                  <Text style={styles.emptyListText}>No similar businesses found</Text>
+                  <Text style={styles.emptyListText}>
+                    No similar {isBusiness ? "businesses" : "investors"} found
+                  </Text>
                 </View>
               )}
             />
@@ -363,9 +489,14 @@ const styles = StyleSheet.create({
   },
   profileImage: {
     width: "100%",
-    height: 255,
     borderRadius: 8,
     marginBottom: 20,
+  },
+  businessImage: {
+    height: 255,
+  },
+  investorImage: {
+    height: 220,
   },
   nameSection: {
     flexDirection: "row",
@@ -388,11 +519,27 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  socialLinks: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  socialButton: {
+    width: 36,
+    height: 36,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    borderRadius: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  socialIcon: {
+    fontWeight: '700',
+  },
   greenText: {
     color: "#00a86b",
     fontWeight: "600",
   },
-  investorCount: {
+  countText: {
     fontFamily: "Poppins-Medium",
     fontSize: 16,
     marginBottom: 4,
@@ -502,11 +649,11 @@ const styles = StyleSheet.create({
   loadingIndicator: {
     marginVertical: 16,
   },
-  similarBusinessesList: {
+  similarEntitiesList: {
     paddingBottom: 16,
     gap: 16,
   },
-  similarBusinessCard: {
+  similarEntityCard: {
     width: 164,
     height: 245,
     backgroundColor: "#ffffff",
@@ -519,13 +666,13 @@ const styles = StyleSheet.create({
     elevation: 3,
     overflow: "hidden",
   },
-  similarBusinessImage: {
+  similarEntityImage: {
     width: "100%",
     height: 136,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
   },
-  similarBusinessName: {
+  similarEntityName: {
     fontSize: 16,
     fontFamily: "Poppins-SemiBold",
     color: "#171725",
@@ -582,4 +729,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default BusinessProfileScreen
+export default MainProfileScreen

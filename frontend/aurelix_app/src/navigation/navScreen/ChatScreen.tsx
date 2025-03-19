@@ -163,7 +163,6 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
       setSearchResults(results)
     } catch (error) {
       console.error("Error searching conversations:", error)
-      // Show error toast or notification
     }
   }
 
@@ -263,7 +262,6 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
         <TouchableOpacity
           style={styles.searchButton}
           onPress={() => {
-            // Toggle search input visibility
             setIsSearching(!isSearching)
             if (isSearching) {
               setSearchQuery("")
@@ -397,12 +395,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   participantName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     color: "#221F1F",
   },
   timestamp: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "400",
     color: "#221F1FB2",
   },
@@ -413,7 +411,7 @@ const styles = StyleSheet.create({
   },
   messagePreview: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "400",
     color: "#737373",
   },
@@ -421,9 +419,9 @@ const styles = StyleSheet.create({
     color: "#171725",
   },
   unreadBadge: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: "#00a86b",
     justifyContent: "center",
     alignItems: "center",
@@ -483,30 +481,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#ffffff",
-  },
-  bottomNav: {
-    flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-    paddingVertical: 8,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-    position: "relative",
-  },
-  activeIndicator: {
-    position: "absolute",
-    bottom: 0,
-    width: 24,
-    height: 2,
-    backgroundColor: "#00a86b",
-  },
-  crownContainer: {
-    position: "relative",
-  },
+  }
 })
 
 export default RecentMessagesScreen

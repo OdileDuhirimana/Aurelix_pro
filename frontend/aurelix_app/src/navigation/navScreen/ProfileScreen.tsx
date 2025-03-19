@@ -182,9 +182,6 @@ const API = {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       console.log('User logged out successfully');
-      
-      // Clear local auth token (would be implemented with secure storage)
-      // await SecureStore.deleteItemAsync('auth_token');
     } catch (error) {
       console.error('Error logging out:', error);
       throw error;
@@ -530,11 +527,6 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               source={{ uri: profile.avatar }} 
               style={styles.profileImage}
             />
-            {/* {isCurrentUser && (
-              <View style={styles.editProfileImageOverlay}>
-                <Text style={styles.editProfileImageText}>Edit</Text>
-              </View>
-            )} */}
           </TouchableOpacity>
           
           <Text style={styles.profileName}>{profile.name}</Text>

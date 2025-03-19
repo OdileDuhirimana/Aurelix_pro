@@ -6,7 +6,7 @@ import { Home, LineChart, Bot, User, MessageCircle } from 'lucide-react-native';
 import HomeScreen from './navScreen/HomeScreen';
 import AICoachScreen from './navScreen/AIScreen';
 import AIChatScreen from './navScreen/AIChatScreen';
-import InvestorProfileScreen from './navScreen/InvestorProfileScreen';
+import InvestorProfileScreen from './navScreen/MainProfile';
 import RecentMessagesScreen from './navScreen/ChatScreen';
 import ConversationScreen from './navScreen/ConversationScreen';
 import ProfileScreen from './navScreen/ProfileScreen';
@@ -14,8 +14,8 @@ import BusinessDocumentsScreen from './navScreen/BusinessDocumentScreen';
 import SettingsScreen from './navScreen/SettingsScreen';
 import NotificationsScreen from './navScreen/NotificationScreen';
 import DashboardScreen from './navScreen/AnalyticsScreen';
-import InvestorHome from './navScreen/InvestorHome';
 import BusinessProfileScreen from './navScreen/BusinessProfile';
+import MainProfileScreen from './navScreen/MainProfile';
 
 const Tab = createBottomTabNavigator();
 const TabStack = createStackNavigator();
@@ -30,8 +30,7 @@ const TabStackNavigator = () => (
 const HomeStackNavigator = () => (
   <TabStack.Navigator screenOptions={{ headerShown: false }}>
     <TabStack.Screen name="Home" component={HomeScreen} />
-    <TabStack.Screen name="InvestorHome" component={InvestorHome} />
-    <TabStack.Screen name="InvestorProfile" component={InvestorProfileScreen} />
+    <TabStack.Screen name="MainProfile" component={MainProfileScreen} />
     <TabStack.Screen name="BusinessProfile" component={BusinessProfileScreen} />
     <TabStack.Screen name='Notifications' component={NotificationsScreen} options={{headerShown: false}} key='Notifications'/>
   </TabStack.Navigator>
