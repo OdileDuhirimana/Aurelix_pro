@@ -642,9 +642,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffebee',
   },
   messageText: {
-    fontSize: 10,
+    fontSize: 12.5,
     fontFamily: 'Poppins-Regular',
-    lineHeight: 22,
     color: '#171725',
   },
   messageFooter: {
@@ -705,15 +704,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    backgroundColor: '#ffffff',
   },
   inputWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 8,

@@ -14,7 +14,6 @@ import {
   Platform
 } from 'react-native';
 import { 
-  ArrowLeft, 
   Settings, 
   Mail, 
   Phone, 
@@ -22,30 +21,41 @@ import {
   FileText, 
   BarChart2, 
   LogOut,
-  Home,
+  Edit,
   Crown,
-  Bot,
-  MessageSquare,
-  User
+  ChevronLeft
 } from 'lucide-react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
-import { ChevronLeft } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Define TypeScript interfaces for data structures
-interface UserProfile {
+interface BaseProfile {
   id: string;
   name: string;
   avatar: string;
   activeSince: string;
   email: string;
   phone: string;
-  website: string;
   isPremium: boolean;
-  hasBusinessDocuments: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+interface BusinessProfile extends BaseProfile {
+  businessName: string;
+  website: string;
+  hasBusinessDocuments: boolean;
+  description?: string;
+}
+
+interface InvestorProfile extends BaseProfile {
+  bio?: string;
+  linkedin?: string;
+  twitter?: string;
+}
+
+type UserProfile = BusinessProfile | InvestorProfile;
 
 interface ProfileSection {
   id: string;
@@ -61,33 +71,44 @@ const API = {
   baseUrl: 'https://api.example.com',
   
   // Fetch user profile
-  async getUserProfile(userId: string): Promise<UserProfile> {
+  async getUserProfile(userId: string, userType: string): Promise<UserProfile> {
     try {
-      // This would be replaced with an actual API call
-      // const response = await fetch(`${this.baseUrl}/users/${userId}/profile`, {
-      //   headers: {
-      //     'Authorization': `Bearer ${await this.getAuthToken()}`
-      //   }
-      // });
-      // if (!response.ok) throw new Error('Failed to fetch user profile');
-      // return await response.json();
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 600));
       
-      // Mock data for demonstration
-      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate network delay
-      
-      return {
-        id: userId,
-        name: 'Ange Curtis',
-        avatar: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/InveConnect-kf2eJ5D0TDvUWbRybtyvmN2KHYB9Mz.png#crop=290,290,150,150',
-        activeSince: '2023',
-        email: 'angecurtis02@gmail.com',
-        phone: '+250 788 897 654',
-        website: 'www.seedinvest.com',
-        isPremium: true,
-        hasBusinessDocuments: true,
-        createdAt: '2023-01-15T10:30:00Z',
-        updatedAt: '2023-03-22T14:45:00Z'
-      };
+      if (userType === 'entrepreneur') {
+        // Return business profile
+        return {
+          id: userId,
+          name: 'Canaberra',
+          businessName: 'Canaberra',
+          avatar: 'https://s3-alpha-sig.figma.com/img/4b07/3cce/73f6c12d8d50448c6c5457d2dca5a5c7?Expires=1743379200&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=NdDLaM-KXxKx2ayfOTbHlAW0Nig2AB2xcqb~uFVxpvUQNY0XOAFLYXFI4kCusWxDWK1v1xZ~GSIjKNSju1pAxhlB2IKtE6ulVii~D60-QVaMzrO2IKQa6~E4QsvCiQq1D4hBT8B3TLzRPNEc79kjcOdNOYu6s81NMqbSxACKzxS0z-7iEQQZ6WaFr8lPrm0E5sThoIBo3DcZbJeqhwPdy10-AqO26A--U5Z7muI-ktPhd7gc6-N1GfRTNmgnuu44H3dsS7-ozct1qOkiwXVi9Kezq5ZagFll8P4VniJKnfiqU69zbHZdDmHPULw1MHNf81xZQBWlwjLztCHm0MR~EQ__',
+          activeSince: '2023',
+          email: 'angecurtis02@gmail.com',
+          phone: '+250 788 897 654',
+          website: 'www.seedinvest.com',
+          isPremium: true,
+          hasBusinessDocuments: true,
+          description: 'Premium Rwandan coffee, artisanal pastries, and a stylish co-working space.',
+          createdAt: '2023-01-15T10:30:00Z',
+          updatedAt: '2023-03-22T14:45:00Z'
+        };
+      } else {
+        return {
+          id: userId,
+          name: 'Mark Robinson',
+          avatar: 'https://s3-alpha-sig.figma.com/img/c645/17ac/20f3774b14b072cf7edaae17b5f45a95?Expires=1743379200&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=d9ZkNS8HHaJshlaIfDbW0fJ6Mrh0pQJL~m27leTgN~c~TaRoPgTQ1qAYkRKps9kO3CtoNxZk9zPKeDoDbeU63~OxXQvxs4zApBD9wApbyuguNMAhe1OzbxdIVb2yvzJS6nwvEuzOv6JKVOBlYclEvmFPYvgxbXcLxzxQp6UE8qniHUnxP62XAhtXxN2ecnyYW-cptNzv2hoBTD2s~5GD2tz61DMsmeVMhmrU5XmeJL0IkQbUf9aodN40CTKk1kXQuwe6rj1cB-OtNPZOPYMGm1JlqrJiIxOnlblw4QNTZIQp-FVauL0jR3xPx7hofoLz7s~vNGDaVtzOv~FsMQEy2g__',
+          activeSince: '2023',
+          email: 'markrobinson@gmail.com',
+          phone: '+250 788 897 654',
+          linkedin: 'https://linkedin/markrobin',
+          twitter: 'x.com/mark_robinson',
+          isPremium: true,
+          bio: 'Angel investor focused on African startups in the hospitality and tech sectors.',
+          createdAt: '2023-01-15T10:30:00Z',
+          updatedAt: '2023-03-22T14:45:00Z'
+        };
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       throw error;
@@ -95,73 +116,45 @@ const API = {
   },
   
   // Update user profile
-  async updateUserProfile(userId: string, data: Partial<UserProfile>): Promise<UserProfile> {
+  async updateUserProfile(userId: string, data: Partial<UserProfile>, userType: string): Promise<UserProfile> {
     try {
-      // This would be replaced with an actual API call
-      // const response = await fetch(`${this.baseUrl}/users/${userId}/profile`, {
-      //   method: 'PATCH',
-      //   headers: {
-      //     'Authorization': `Bearer ${await this.getAuthToken()}`,
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify(data)
-      // });
-      // if (!response.ok) throw new Error('Failed to update user profile');
-      // return await response.json();
-      
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Return updated profile (mock)
-      return {
-        id: userId,
-        name: data.name || 'Ange Curtis',
-        avatar: data.avatar || 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/InveConnect-kf2eJ5D0TDvUWbRybtyvmN2KHYB9Mz.png#crop=290,290,150,150',
-        activeSince: '2023',
-        email: data.email || 'angecurtis02@gmail.com',
-        phone: data.phone || '+250 788 897 654',
-        website: data.website || 'www.seedinvest.com',
-        isPremium: true,
-        hasBusinessDocuments: true,
-        createdAt: '2023-01-15T10:30:00Z',
-        updatedAt: new Date().toISOString()
-      };
+      // Return updated profile based on user type
+      if (userType === 'entrepreneur') {
+        return {
+          id: userId,
+          name: data.name || 'Canaberra',
+          businessName: data.name || 'Canaberra',
+          avatar: data.avatar || 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Aurelix_design-OLMXtPJpfFSgZMcXRqUEKnZHuIbBOq.png',
+          activeSince: '2023',
+          email: data.email || 'angecurtis02@gmail.com',
+          phone: data.phone || '+250 788 897 654',
+          website: (data as Partial<BusinessProfile>).website || 'www.seedinvest.com',
+          isPremium: true,
+          hasBusinessDocuments: true,
+          createdAt: '2023-01-15T10:30:00Z',
+          updatedAt: new Date().toISOString()
+        };
+      } else {
+        return {
+          id: userId,
+          name: data.name || 'Mark Robinson',
+          avatar: data.avatar || 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Aurelix_design-tLTlWENaJ0Uv6ilTiTOYhBgHLSs1ln.png',
+          activeSince: '2023',
+          email: data.email || 'markrobinson@gmail.com',
+          phone: data.phone || '+250 788 897 654',
+          linkedin: (data as Partial<InvestorProfile>).linkedin || 'https://linkedin/markrobin',
+          twitter: (data as Partial<InvestorProfile>).twitter || 'x.com/mark_robinson',
+          isPremium: true,
+          bio: (data as Partial<InvestorProfile>).bio || '',
+          createdAt: '2023-01-15T10:30:00Z',
+          updatedAt: new Date().toISOString()
+        };
+      }
     } catch (error) {
       console.error('Error updating user profile:', error);
-      throw error;
-    }
-  },
-  
-  // Upload profile picture
-  async uploadProfilePicture(file: { uri: string; type: string; name: string }): Promise<{ url: string }> {
-    try {
-      // This would be replaced with an actual API call
-      // const formData = new FormData();
-      // formData.append('file', {
-      //   uri: file.uri,
-      //   type: file.type,
-      //   name: file.name
-      // });
-      // 
-      // const response = await fetch(`${this.baseUrl}/uploads/profile-picture`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${await this.getAuthToken()}`,
-      //     'Content-Type': 'multipart/form-data'
-      //   },
-      //   body: formData
-      // });
-      // if (!response.ok) throw new Error('Failed to upload profile picture');
-      // return await response.json();
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      return {
-        url: `https://example.com/uploads/${file.name}`
-      };
-    } catch (error) {
-      console.error('Error uploading profile picture:', error);
       throw error;
     }
   },
@@ -169,46 +162,18 @@ const API = {
   // Logout user
   async logout(): Promise<void> {
     try {
-      // This would be replaced with an actual API call
-      // const response = await fetch(`${this.baseUrl}/auth/logout`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${await this.getAuthToken()}`
-      //   }
-      // });
-      // if (!response.ok) throw new Error('Failed to logout');
-      
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      
       console.log('User logged out successfully');
     } catch (error) {
       console.error('Error logging out:', error);
       throw error;
     }
-  },
-  
-  // Get authentication token (would be implemented with secure storage)
-  async getAuthToken(): Promise<string> {
-    // This would retrieve the token from secure storage
-    return 'mock-auth-token';
   }
 };
 
 // Authentication service
 const AuthService = {
-  // Check if user is authenticated
-  async isAuthenticated(): Promise<boolean> {
-    try {
-      // This would check if the auth token exists and is valid
-      const token = await API.getAuthToken();
-      return !!token;
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-      return false;
-    }
-  },
-  
   // Logout user
   async logout(navigation: any): Promise<void> {
     try {
@@ -233,6 +198,7 @@ interface Props {
   route: {
     params?: {
       userId?: string;
+      userType?: 'entrepreneur' | 'investor';
     }
   }
 }
@@ -244,10 +210,33 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [userType, setUserType] = useState<'entrepreneur' | 'investor'>('entrepreneur');
   
   // Get user ID from route params or use current user
   const userId = route.params?.userId || 'currentUser';
   const isCurrentUser = userId === 'currentUser';
+  
+  // Determine if the profile is for a business or investor
+  useEffect(() => {
+    const determineUserType = async () => {
+      try {
+        // First check if userType is passed in route params
+        if (route.params?.userType) {
+          setUserType(route.params.userType);
+        } else {
+          // Otherwise check AsyncStorage
+          const storedUserType = await AsyncStorage.getItem('@user_type');
+          if (storedUserType === 'investor' || storedUserType === 'entrepreneur') {
+            setUserType(storedUserType as 'entrepreneur' | 'investor');
+          }
+        }
+      } catch (error) {
+        console.error('Error determining user type:', error);
+      }
+    };
+
+    determineUserType();
+  }, [route.params]);
   
   // Fetch user profile when component mounts or when user navigates back to this screen
   useFocusEffect(
@@ -258,7 +247,7 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
       return () => {
         // Any cleanup needed when screen loses focus
       };
-    }, [userId])
+    }, [userId, userType])
   );
   
   // Fetch user profile from API
@@ -267,7 +256,7 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
       setError(null);
       setIsLoading(true);
       
-      const userProfile = await API.getUserProfile(userId);
+      const userProfile = await API.getUserProfile(userId, userType);
       setProfile(userProfile);
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -296,12 +285,7 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
       setIsSaving(true);
       
       // Update profile with API
-      const updatedProfile = await API.updateUserProfile(userId, {
-        name: profile.name,
-        email: profile.email,
-        phone: profile.phone,
-        website: profile.website
-      });
+      const updatedProfile = await API.updateUserProfile(userId, profile, userType);
       
       setProfile(updatedProfile);
       setIsEditing(false);
@@ -318,38 +302,6 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   
   // Handle profile picture upload
   const handleProfilePictureUpload = async () => {
-    // This would use image picker to select an image
-    // const result = await ImagePicker.launchImageLibraryAsync({
-    //   mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    //   allowsEditing: true,
-    //   aspect: [1, 1],
-    //   quality: 0.8
-    // });
-    // 
-    // if (!result.cancelled) {
-    //   try {
-    //     const fileInfo = {
-    //       uri: result.uri,
-    //       type: 'image/jpeg',
-    //       name: `profile-${Date.now()}.jpg`
-    //     };
-    //     
-    //     const uploadResult = await API.uploadProfilePicture(fileInfo);
-    //     
-    //     // Update profile with new avatar URL
-    //     if (profile) {
-    //       const updatedProfile = await API.updateUserProfile(userId, {
-    //         avatar: uploadResult.url
-    //       });
-    //       
-    //       setProfile(updatedProfile);
-    //     }
-    //   } catch (error) {
-    //     console.error('Error uploading profile picture:', error);
-    //     Alert.alert('Upload Failed', 'An error occurred while uploading your profile picture. Please try again.');
-    //   }
-    // }
-    
     Alert.alert('Upload Profile Picture', 'This feature would allow users to upload a new profile picture.');
   };
   
@@ -456,33 +408,66 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
       Alert.alert('Error', 'An error occurred while trying to send an email.');
     }
   };
+
+  // Handle opening social media
+  const handleOpenSocialMedia = async (type: 'linkedin' | 'twitter', url: string) => {
+    if (!url) return;
+    
+    // Add https:// if not present
+    let fullUrl = url;
+    if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+      fullUrl = `https://${fullUrl}`;
+    }
+    
+    try {
+      const supported = await Linking.canOpenURL(fullUrl);
+      
+      if (supported) {
+        await Linking.openURL(fullUrl);
+      } else {
+        Alert.alert('Error', `Cannot open ${type}: ${url}`);
+      }
+    } catch (error) {
+      console.error(`Error opening ${type}:`, error);
+      Alert.alert('Error', `An error occurred while opening ${type}.`);
+    }
+  };
   
   // Generate utility sections
   const getUtilitySections = (): ProfileSection[] => {
     if (!profile) return [];
     
-    return [
-      {
+    const sections: ProfileSection[] = [];
+    
+    // Add business documents for entrepreneurs only
+    if (userType === 'entrepreneur') {
+      sections.push({
         id: 'business-documents',
         title: 'Business Documents',
         icon: <FileText size={24} color="#000000" />,
         action: handleOpenBusinessDocuments,
-        isActive: profile.hasBusinessDocuments
-      },
-      {
-        id: 'ai-analytics',
-        title: 'AI Analytics',
-        icon: <BarChart2 size={24} color="#000000" />,
-        action: handleOpenAIAnalytics,
-        isPremium: true
-      },
-      {
-        id: 'logout',
-        title: 'Logout',
-        icon: <LogOut size={24} color="#000000" />,
-        action: handleLogout
-      }
-    ];
+        isActive: (profile as BusinessProfile).hasBusinessDocuments
+      });
+    }
+    
+    // Add AI Analytics for both types
+    sections.push({
+      id: 'ai-analytics',
+      title: 'AI Analytics',
+      icon: <BarChart2 size={24} color="#000000" />,
+      action: handleOpenAIAnalytics,
+      isPremium: true
+    });
+    
+    // Add logout for both types
+    sections.push({
+      id: 'logout',
+      title: 'Logout',
+      icon: <LogOut size={24} color="#000000" />,
+      action: handleLogout
+    });
+    
+    return sections;
   };
   
   // Render loading state
@@ -514,6 +499,10 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   const renderProfileContent = () => {
     if (!profile) return null;
     
+    const isBusinessProfile = userType === 'entrepreneur';
+    const businessProfile = profile as BusinessProfile;
+    const investorProfile = profile as InvestorProfile;
+    
     return (
       <ScrollView style={styles.scrollView}>
         {/* Profile Header */}
@@ -531,6 +520,29 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
           
           <Text style={styles.profileName}>{profile.name}</Text>
           <Text style={styles.profileActiveSince}>Active since {profile.activeSince}</Text>
+          
+          {/* Bio/Description - only show if it exists */}
+          {isBusinessProfile && businessProfile.description ? (
+            <Text style={styles.profileBio}>{businessProfile.description}</Text>
+          ) : !isBusinessProfile && investorProfile.bio ? (
+            <TouchableOpacity 
+              style={styles.addDescriptionButton}
+              onPress={() => Alert.alert('Edit Bio', 'This would allow editing the bio.')}
+            >
+              <Edit size={16} color="#00a86b" />
+              <Text style={styles.addDescriptionText}>
+                {investorProfile.bio || 'Add description'}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={styles.addDescriptionButton}
+              onPress={() => Alert.alert('Add Description', 'This would allow adding a description.')}
+            >
+              <Edit size={16} color="#00a86b" />
+              <Text style={styles.addDescriptionText}>Add description</Text>
+            </TouchableOpacity>
+          )}
         </View>
         
         {/* Personal Information */}
@@ -541,20 +553,18 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
             {isCurrentUser && (
               <View style={styles.editButtonsContainer}>
                 {isEditing ? (
-                  <>
-                    <TouchableOpacity 
-                      onPress={handleSaveProfile}
-                      disabled={isSaving}
-                    >
-                      <Text style={styles.saveButtonText}>Save</Text>
-                    </TouchableOpacity>
-                  </>
+                  <TouchableOpacity 
+                    onPress={handleSaveProfile}
+                    disabled={isSaving}
+                  >
+                    <Text style={styles.saveButtonText}>Save</Text>
+                  </TouchableOpacity>
                 ) : (
                   <TouchableOpacity 
                     style={styles.editButton}
                     onPress={handleEditProfile}
                   >
-                    <FileText size={20} color="#000000" />
+                    <Edit size={20} color="#00a86b" />
                     <Text style={styles.editButtonText}>Edit</Text>
                   </TouchableOpacity>
                 )}
@@ -562,6 +572,7 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
             )}
           </View>
           
+          {/* Email */}
           <TouchableOpacity 
             style={styles.infoItem}
             onPress={() => handleSendEmail(profile.email)}
@@ -572,6 +583,7 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.infoText}>{profile.email}</Text>
           </TouchableOpacity>
           
+          {/* Phone */}
           <TouchableOpacity 
             style={styles.infoItem}
             onPress={() => handlePhoneCall(profile.phone)}
@@ -582,15 +594,46 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.infoText}>{profile.phone}</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity 
-            style={styles.infoItem}
-            onPress={() => handleOpenWebsite(profile.website)}
-          >
-            <View style={styles.infoIconContainer}>
-              <Globe size={20} color="#000000" />
-            </View>
-            <Text style={styles.infoText}>{profile.website}</Text>
-          </TouchableOpacity>
+          {/* Website or Social Media based on profile type */}
+          {isBusinessProfile ? (
+            <TouchableOpacity 
+              style={styles.infoItem}
+              onPress={() => handleOpenWebsite(businessProfile.website)}
+            >
+              <View style={styles.infoIconContainer}>
+                <Globe size={20} color="#000000" />
+              </View>
+              <Text style={styles.infoText}>{businessProfile.website}</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              {/* LinkedIn */}
+              {investorProfile.linkedin && (
+                <TouchableOpacity 
+                  style={styles.infoItem}
+                  onPress={() => handleOpenSocialMedia('linkedin', investorProfile.linkedin || '')}
+                >
+                  <View style={styles.infoIconContainer}>
+                    <Text style={styles.socialIcon}>in</Text>
+                  </View>
+                  <Text style={styles.infoText}>{investorProfile.linkedin}</Text>
+                </TouchableOpacity>
+              )}
+              
+              {/* Twitter */}
+              {investorProfile.twitter && (
+                <TouchableOpacity 
+                  style={styles.infoItem}
+                  onPress={() => handleOpenSocialMedia('twitter', investorProfile.twitter || '')}
+                >
+                  <View style={styles.infoIconContainer}>
+                    <Text style={styles.socialIcon}>𝕏</Text>
+                  </View>
+                  <Text style={styles.infoText}>{investorProfile.twitter}</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
         </View>
         
         {/* Utilities */}
@@ -620,7 +663,6 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
           ))}
         </View>
         
-        {/* Add more sections as needed */}
         <View style={styles.bottomSpacer} />
       </ScrollView>
     );
@@ -633,14 +675,14 @@ const ProfileScreen: React.FC<Props> = ({ navigation, route }) => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.subhead}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <ChevronLeft size={24} color="#171725" />
-        </TouchableOpacity>
-        
-        <Text style={styles.headerTitle}>Profile</Text>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <ChevronLeft size={24} color="#171725" />
+          </TouchableOpacity>
+          
+          <Text style={styles.headerTitle}>Profile</Text>
         </View>
         
         <TouchableOpacity 
@@ -747,30 +789,15 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: 90,
     height: 90,
-    borderRadius: "50%",
+    borderRadius: 45,
     marginBottom: 16,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#00A86B',
   },
   profileImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 60,
-  },
-  editProfileImageOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingVertical: 4,
-    alignItems: 'center',
-  },
-  editProfileImageText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '600',
+    borderRadius: 45,
+    resizeMode: 'cover',
   },
   profileName: {
     fontSize: 18,
@@ -780,16 +807,32 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   profileActiveSince: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: 'Inter-Variable',
-    fontWeight: 300,
+    fontWeight: '300',
     color: '#221F1F99',
+    marginBottom: 8,
+  },
+  profileBio: {
+    fontSize: 14,
+    fontFamily: 'Inter-Variable',
+    color: '#171725',
+    textAlign: 'center',
+    paddingHorizontal: 40,
+    marginTop: 8,
+  },
+  addDescriptionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  addDescriptionText: {
+    fontSize: 14,
+    color: '#00a86b',
+    marginLeft: 4,
   },
   section: {
     paddingHorizontal: 30,
-    // paddingVertical: 16,
-    // borderBottomWidth: 1,
-    // borderBottomColor: '#f0f0f0',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -797,7 +840,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#171725',
     marginBottom: 16,
@@ -816,11 +859,11 @@ const styles = StyleSheet.create({
   editButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#171725',
+    color: '#00a86b',
     marginLeft: 4,
   },
   saveButtonText: {
-    fontSize: 1,
+    fontSize: 14,
     fontWeight: '500',
     color: '#00a86b',
     marginBottom: 15,
@@ -842,11 +885,15 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   infoText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: 'Inter-Variable',
-    fontWeight: 400,
+    fontWeight: '400',
     color: '#171725',
     flex: 1,
+  },
+  socialIcon: {
+    fontWeight: '700',
+    fontSize: 16,
   },
   utilityItem: {
     flexDirection: 'row',
@@ -868,9 +915,9 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   utilityText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: 'Inter-Variable',
-    fontWeight: 400,
+    fontWeight: '400',
     color: '#171725',
     flex: 1,
   },

@@ -29,7 +29,7 @@ import type { Business, Investor, Investor2 } from "../index"
 import { API as BusinessAPI } from "./mockup/api_business_profile"
 import { API as InvestorAPI } from "./mockup/api_ivestor"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-
+import EntityCard from "./Components/Card"
 type MainProfileScreenNavigationProp = StackNavigationProp<
   any,
   "Profile"
@@ -429,20 +429,31 @@ const MainProfileScreen: React.FC<Props> = ({ navigation, route }) => {
             />
           ) : (
             <FlatList
-              data={similarEntities}
-              renderItem={renderSimilarEntityItem}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.similarEntitiesList}
-              ListEmptyComponent={() => (
-                <View style={styles.emptyListContainer}>
-                  <Text style={styles.emptyListText}>
-                    No similar {isBusiness ? "businesses" : "investors"} found
-                  </Text>
-                </View>
-              )}
-            />
+            data={similarEntities}
+            renderItem={({ item }) => (
+              <EntityCard
+                entity={item}
+                type={entityType}
+                onPress={() => navigation.navigate("MainProfile", {
+                  entity: item,
+                  entityType: entityType,
+                })}
+                onChatPress={() => handleInitiateChat(item.id)}
+                style={{ width: 164, marginRight: 16 }}
+              />
+            )}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.similarEntitiesList}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyListContainer}>
+                <Text style={styles.emptyListText}>
+                  No similar {isBusiness ? "businesses" : "investors"} found
+                </Text>
+              </View>
+            )}
+          />
           )}
         </View>
       </ScrollView>

@@ -304,13 +304,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   messageText: {
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 12.5,
+    fontFamily: 'Poppins-Regular',
     color: '#171725',
   },
   messageTextUser: {
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 12.5,
     color: '#ffffff',
   },
   loadingContainer: {
