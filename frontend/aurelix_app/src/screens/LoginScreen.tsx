@@ -146,14 +146,14 @@ const LoginScreen = () => {
               )}
             </TouchableOpacity>
 
-            <View style={styles.credentialsHint}>
+            {/* <View style={styles.credentialsHint}>
               <Text style={styles.credentialsHintText}>
                 Investor login: admin / admin123
               </Text>
               <Text style={styles.credentialsHintText}>
                 Entrepreneur login: user / user123
               </Text>
-            </View>
+            </View> */}
 
             <View style={styles.signUpContainer}>
               <Text style={styles.signUpText}>Don't have an account? </Text>
