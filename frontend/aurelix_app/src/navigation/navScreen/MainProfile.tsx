@@ -365,7 +365,7 @@ const MainProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Text style={styles.actionButtonText}>Pitch Video</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.actionButtonOutline}>
+              <TouchableOpacity style={styles.actionButtonOutline} onPress={() => navigation.navigate("Documents", { business: entity })}>
                 <FileText size={18} color="#000000" />
                 <Text style={styles.actionButtonText}>Documents</Text>
               </TouchableOpacity>
@@ -438,7 +438,7 @@ const MainProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                   entity: item,
                   entityType: entityType,
                 })}
-                onChatPress={() => handleInitiateChat(item.id)}
+                onChatPress={() => handleInitiateChat(item.id)}a
                 style={{ width: 164, marginRight: 16 }}
               />
             )}
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   },
   nameText: {
     fontFamily: "Poppins-Bold",
-    fontSize: 28,
+    fontSize: 25,
     color: "#221F1F",
   },
   contactButtons: {
@@ -551,21 +551,21 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   countText: {
-    fontFamily: "Poppins-Medium",
-    fontSize: 16,
+    fontFamily: "Poppins-Regular",
+    fontSize: 14,
     marginBottom: 4,
   },
   industryText: {
     fontFamily: "Poppins-Regular",
-    fontSize: 16,
+    fontSize: 14,
     color: "#221F1F",
     marginBottom: 16,
   },
   descriptionText: {
     fontFamily: "Poppins-Regular",
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 13,
     color: "#221F1F",
+    lineHeight: 20,
     marginBottom: 20,
   },
   actionButtonsContainer: {
@@ -613,10 +613,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontFamily: "Poppins-Bold",
-    fontSize: 22,
+    fontFamily: "Poppins-SemiBold",
+    fontSize: 20,
     color: "#221F1F",
-    marginBottom: 16,
+    marginBottom: 10,
   },
   similarHeader: {
     flexDirection: "row",

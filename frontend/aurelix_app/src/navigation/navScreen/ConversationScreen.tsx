@@ -12,33 +12,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Keyboard,
-  Animated,
-  Dimensions
+  Animated
 } from 'react-native';
 import { ChevronLeft, Search, Paperclip, Mic, Send } from 'lucide-react-native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
-import type { Message, User, Conversation } from '../index';
-import { API, WebSocketService } from './mockup/api-convo';
-import { red } from 'react-native-reanimated/lib/typescript/Colors';
+import messageService, { Message, User, WebSocketService } from "./mockup/api_messages"
+import { formatMessageTime} from "./util/formatters"
 
-// API service for data fetching and operations
-
-
-type ConversationScreenNavigationProp = StackNavigationProp<any, 'Conversation'>;
-
-interface Props {
-  navigation: ConversationScreenNavigationProp;
-  route: {
-    params: {
-      conversationId: string;
-      participantId: string;
-    }
-  }
-}
-
-const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
+const ConversationScreen = ({ navigation, route }) => {
   // State management
   const [messages, setMessages] = useState<Message[]>([]);
   const [participant, setParticipant] = useState<User | null>(null);
@@ -69,6 +50,7 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
       
       // Connect to WebSocket for real-time messaging
       WebSocketService.connect(currentUserId, handleIncomingMessage);
+      WebSocketService.onTypingIndicator(currentUserId, handleParticipantTypingIndicator);
       
       // Clean up function
       return () => {
@@ -89,8 +71,8 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
       setError(null);
       setIsLoading(true);
       const [participantData, messagesData] = await Promise.all([
-        API.getUserProfile(participantId),
-        API.getConversationMessages(conversationId)
+        messageService.getUserProfile(participantId),
+        messageService.getConversationMessages(conversationId)
       ]);
       
       setParticipant(participantData);
@@ -112,7 +94,7 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
       setIsLoadingMore(true);
       
       const oldestMessageId = messages.length > 0 ? messages[0].id : undefined;
-      const messagesData = await API.getConversationMessages(conversationId, {
+      const messagesData = await messageService.getConversationMessages(conversationId, {
         limit: 20,
         before: oldestMessageId
       });
@@ -132,7 +114,7 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
     setMessages(prevMessages => [...prevMessages, message]);
     
     // Mark message as read
-    API.markMessagesAsRead(conversationId, [message.id]);
+    messageService.markMessagesAsRead(conversationId, [message.id]);
     
     // Reset participant typing indicator
     setIsParticipantTyping(false);
@@ -175,7 +157,7 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
       scrollToBottom();
       
       // Send message to API
-      const sentMessage = await API.sendMessage(messageToSend);
+      const sentMessage = await messageService.sendMessage(messageToSend);
       
       // Replace optimistic message with actual message from server
       setMessages(prevMessages => 
@@ -197,8 +179,6 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
             : msg
         )
       );
-      
-      // Show error toast or notification
     } finally {
       setIsSending(false);
     }
@@ -283,12 +263,6 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
     }, 100);
   };
   
-  // Format timestamp to display time
-  const formatMessageTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-  
   // Group messages by date
   const groupMessagesByDate = (messages: Message[]) => {
     const groups: { [date: string]: Message[] } = {};
@@ -326,9 +300,19 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
             message.status === 'failed' && styles.failedMessageBubble
           ]}
         >
-          <Text style={styles.messageText}>{message.content}</Text>
+          <Text style={[
+            styles.messageText,
+            isCurrentUser ? styles.currentUserMessageText : styles.otherUserMessageText
+          ]}>
+            {message.content}
+          </Text>
           <View style={styles.messageFooter}>
-            <Text style={styles.messageTime}>{formatMessageTime(message.timestamp)}</Text>
+            <Text style={[
+              styles.messageTime,
+              isCurrentUser ? styles.currentUserMessageTime : styles.otherUserMessageTime
+            ]}>
+              {formatMessageTime(message.timestamp)}
+            </Text>
           </View>
         </View>
         
@@ -346,6 +330,7 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
       </View>
     );
   };
+  
   // Render typing indicator
   const renderTypingIndicator = () => {
     if (!isParticipantTyping) return null;
@@ -403,28 +388,28 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.titleContainer}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <ChevronLeft size={24} color="#171725" />
-          </TouchableOpacity>
-          
-          {participant && (
             <TouchableOpacity 
-              style={styles.profileContainer}
-              onPress={() => {
-                // Navigate to participant profile
-                navigation.navigate('InvestorProfile', { investorId: participantId });
-              }}
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
             >
-              <Image 
-                source={{ uri: participant.avatar }} 
-                style={styles.profileImage}
-              />
-              <Text style={styles.profileName}>{participant.name}</Text>
+              <ChevronLeft size={24} color="#171725" />
             </TouchableOpacity>
-          )}
+            
+            {participant && (
+              <TouchableOpacity 
+                style={styles.profileContainer}
+                onPress={() => {
+                  // Navigate to participant profile
+                  navigation.navigate('InvestorProfile', { investorId: participantId });
+                }}
+              >
+                <Image 
+                  source={{ uri: participant.avatar }} 
+                  style={styles.profileImage}
+                />
+                <Text style={styles.profileName}>{participant.name}</Text>
+              </TouchableOpacity>
+            )}
           </View>
           <TouchableOpacity 
             style={styles.searchButton}
@@ -492,7 +477,6 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
             <TouchableOpacity 
               style={styles.attachButton}
               onPress={() => {
-                // Implement attachment functionality
                 console.log('Attach file');
               }}
             >
@@ -502,7 +486,6 @@ const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
             <TouchableOpacity 
               style={styles.micButton}
               onPress={() => {
-                // Implement voice recording functionality
                 console.log('Record voice message');
               }}
             >
@@ -546,7 +529,7 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     flexDirection: 'row',
-    gap : 10,
+    gap: 10,
   },
   backButton: {
     width: 40,
@@ -642,8 +625,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffebee',
   },
   messageText: {
-    fontSize: 12.5,
-    fontFamily: 'Poppins-Regular',
+    fontSize: 14,
+    fontWeight: "400",
+    color: '#171725',
+  },
+  currentUserMessageText: {
+    color: '#FFFFFF',
+  },
+  otherUserMessageText: {
     color: '#171725',
   },
   messageFooter: {
@@ -657,17 +646,11 @@ const styles = StyleSheet.create({
     color: '#737373',
     marginRight: 4,
   },
-  messageStatus: {
-    fontSize: 12,
+  currentUserMessageTime: {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  otherUserMessageTime: {
     color: '#737373',
-  },
-  messageStatusRead: {
-    fontSize: 12,
-    color: '#00a86b',
-  },
-  messageStatusFailed: {
-    fontSize: 12,
-    color: '#e53935',
   },
   retryButton: {
     paddingVertical: 4,

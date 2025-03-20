@@ -18,48 +18,36 @@ export const formatPercentageChange = (change: number): string => {
 };
 
 /**
- * Formats a timestamp into a human-readable time string
- * @param timestamp The timestamp to format (Date object or ISO string)
+ * Format a timestamp for display in the UI
+ * @param timestamp ISO string timestamp
  * @returns Formatted time string (e.g., "10:30 AM", "Yesterday", "Mar 15")
  */
-export const formatTime = (timestamp: Date | string): string => {
-  // Convert string timestamp to Date if needed
-  const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
-  
-  // Get current date for comparison
+export const formatTime = (timestamp: string): string => {
+  const date = new Date(timestamp);
   const now = new Date();
+  const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
   
-  // Check if the date is today
-  const isToday = date.toDateString() === now.toDateString();
-  
-  // Check if the date was yesterday
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday = date.toDateString() === yesterday.toDateString();
-  
-  // Check if the date is within the current week
-  const isThisWeek = date > new Date(now.setDate(now.getDate() - 7));
-  
-  // Format the time (e.g., "10:30 AM")
-  const timeOptions: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: 'numeric' };
-  const timeString = date.toLocaleTimeString(undefined, timeOptions);
-  
-  if (isToday) {
-    // If today, just return the time
-    return timeString;
-  } else if (isYesterday) {
-    // If yesterday, return "Yesterday"
-    return "Yesterday";
-  } else if (isThisWeek) {
-    // If within the current week, return the day name
-    const dayOptions: Intl.DateTimeFormatOptions = { weekday: 'short' };
-    return date.toLocaleDateString(undefined, dayOptions);
-  } else {
-    // Otherwise, return the short date (e.g., "Mar 15")
-    const dateOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-    return date.toLocaleDateString(undefined, dateOptions);
+  // Today
+  if (diffInDays === 0) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
+  
+  // Yesterday
+  if (diffInDays === 1) {
+    return 'Yesterday';
+  }
+  
+  // Within the last week
+  if (diffInDays < 7) {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return days[date.getDay()];
+  }
+  
+  // Older than a week
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[date.getMonth()]} ${date.getDate()}`;
 };
+
 
 /**
  * Formats a date into a human-readable string
@@ -88,4 +76,14 @@ export const formatCurrency = (amount: number, currency: string = 'USD'): string
     style: 'currency',
     currency: currency,
   }).format(amount);
+};
+
+/**
+ * Format a timestamp for display in a message bubble
+ * @param timestamp ISO string timestamp
+ * @returns Formatted time string (e.g., "10:30 AM")
+ */
+export const formatMessageTime = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };

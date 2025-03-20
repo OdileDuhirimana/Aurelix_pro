@@ -16,6 +16,7 @@ import NotificationsScreen from './navScreen/NotificationScreen';
 import DashboardScreen from './navScreen/AnalyticsScreen';
 import BusinessProfileScreen from './navScreen/BusinessProfile';
 import MainProfileScreen from './navScreen/MainProfile';
+import DocumentsScreen from './navScreen/DocumentsScreen';
 
 const Tab = createBottomTabNavigator();
 const TabStack = createStackNavigator();
@@ -33,6 +34,7 @@ const HomeStackNavigator = () => (
     <TabStack.Screen name="MainProfile" component={MainProfileScreen} />
     <TabStack.Screen name="BusinessProfile" component={BusinessProfileScreen} />
     <TabStack.Screen name='Notifications' component={NotificationsScreen} options={{headerShown: false}} key='Notifications'/>
+    <TabStack.Screen name="Documents" component={DocumentsScreen} />
   </TabStack.Navigator>
 );
 
@@ -46,7 +48,7 @@ const ChatStackNavigator = () => (
 const ProfileStackNavigator = () => (
   <TabStack.Navigator screenOptions={{ headerShown: false }}>
     <TabStack.Screen name="Profile" component={ProfileScreen} />
-    <TabStack.Screen name="BusinessDocuments" component={BusinessDocumentsScreen} />
+    <TabStack.Screen name="BusinessDoc" component={BusinessDocumentsScreen} />
     <TabStack.Screen name="Settings" component={SettingsScreen} />
   </TabStack.Navigator>
 );

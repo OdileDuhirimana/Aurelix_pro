@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -6,71 +6,47 @@ import {
   TouchableOpacity, 
   SafeAreaView, 
   StatusBar,
-  ScrollView,
-  Image
+  ActivityIndicator,
+  Platform,
+  Share,
+  Alert
 } from 'react-native';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Download, Share2 } from 'lucide-react-native';
+// Note: You'll need to install react-native-pdf
+// import Pdf from 'react-native-pdf';
 
+const DocumentsScreen = ({ route, navigation }) => {
+  const { uri, title } = route.params;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-interface Document {
-  id: string;
-  title: string;
-  description: string;
-}
+  const handleBackPress = () => {
+    navigation.goBack();
+  };
 
-// List of documents
-const documents: Document[] = [
-  {
-    id: '1',
-    title: 'Certificate of Incorporation',
-    description: 'Legal Proof that a business is officially registered'
-  },
-  {
-    id: '2',
-    title: 'Business Plan',
-    description: 'Mission, market opportunity and business model'
-  },
-  {
-    id: '3',
-    title: 'Pitch Deck',
-    description: 'Presentation of key business details'
-  },
-  {
-    id: '4',
-    title: 'Investment Proposal',
-    description: 'Founding amount needed and how it will be used.'
-  },
-  {
-    id: '5',
-    title: 'Financial Statements',
-    description: 'Balance sheet, Income and cash flow statement.'
-  },
-  {
-    id: '6',
-    title: 'Legal Documents',
-    description: 'Business licenses, shareholder agreements and intellectual property rights.'
-  }
-];
+  const handleDownload = async () => {
+    try {
+      // In a real app, you would implement file download functionality
+      // For example, using react-native-fs
+      Alert.alert('Download', `Downloading ${title}...`);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      Alert.alert('Error', 'Failed to download document');
+    }
+  };
 
-// Document item component
-const DocumentItem = ({ document }: { document: Document }) => {
-  return (
-    <TouchableOpacity style={styles.documentItem}>
-      <Image 
-        source={require('./assets/pdf-icon.png')} 
-        style={styles.pdfIcon}
-        defaultSource={require('./assets/pdf-icon.png')}
-      />
-      <View style={styles.documentInfo}>
-        <Text style={styles.documentTitle}>{document.title}</Text>
-        <Text style={styles.documentDescription}>{document.description}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Check out this document: ${title}`,
+        url: uri, // iOS only
+      });
+    } catch (error) {
+      console.error('Error sharing document:', error);
+      Alert.alert('Error', 'Failed to share document');
+    }
+  };
 
-// Main component
-const DocumentsScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
@@ -79,24 +55,75 @@ const DocumentsScreen = ({ navigation }) => {
         <View style={styles.header}>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={handleBackPress}
           >
             <ChevronLeft size={24} color="#000000" />
           </TouchableOpacity>
-          <Text style={styles.title}>Canaberra Documents</Text>
-          <TouchableOpacity style={styles.chatButton}>
-            <View style={styles.chatIcon}>
-              <Text style={styles.chatDots}>...</Text>
-            </View>
-          </TouchableOpacity>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+            {title}
+          </Text>
+          <View style={styles.headerActions}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={handleDownload}
+            >
+              <Download size={20} color="#000000" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={handleShare}
+            >
+              <Share2 size={20} color="#000000" />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Document List */}
-        <ScrollView style={styles.documentList}>
-          {documents.map((document) => (
-            <DocumentItem key={document.id} document={document} />
-          ))}
-        </ScrollView>
+        {/* PDF Viewer */}
+        <View style={styles.pdfContainer}>
+          {loading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#00a86b" />
+              <Text style={styles.loadingText}>Loading document...</Text>
+            </View>
+          )}
+          
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity 
+                style={styles.retryButton}
+                onPress={() => setLoading(true)}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          
+          {/* Uncomment when you have react-native-pdf installed */}
+          {/* <Pdf
+            source={{ uri }}
+            onLoadComplete={(numberOfPages, filePath) => {
+              console.log(`Number of pages: ${numberOfPages}`);
+              setLoading(false);
+            }}
+            onError={(error) => {
+              console.error('Error loading PDF:', error);
+              setError('Failed to load document');
+              setLoading(false);
+            }}
+            style={styles.pdf}
+          /> */}
+          
+          {/* Placeholder for PDF viewer */}
+          <View style={styles.pdfPlaceholder}>
+            <Text style={styles.pdfPlaceholderText}>
+              PDF Viewer would be displayed here.
+            </Text>
+            <Text style={styles.pdfPlaceholderSubtext}>
+              Install react-native-pdf and uncomment the Pdf component.
+            </Text>
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -106,6 +133,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   container: {
     flex: 1,
@@ -123,54 +151,84 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#221F1F',
-  },
-  chatButton: {
-    padding: 8,
-  },
-  chatIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#00a86b',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  chatDots: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: -8,
-  },
-  documentList: {
-    flex: 1,
-    padding: 16,
-  },
-  documentItem: {
-    flexDirection: 'row',
-    marginBottom: 24,
-    alignItems: 'flex-start',
-  },
-  pdfIcon: {
-    width: 60,
-    height: 60,
-    marginRight: 16,
-  },
-  documentInfo: {
-    flex: 1,
-  },
-  documentTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#221F1F',
-    marginBottom: 4,
+    flex: 1,
+    marginHorizontal: 16,
   },
-  documentDescription: {
-    fontSize: 14,
+  headerActions: {
+    flexDirection: 'row',
+  },
+  actionButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  pdfContainer: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
+  pdf: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    zIndex: 1,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
     color: '#666666',
-    lineHeight: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#FF0000',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#00a86b',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  pdfPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  pdfPlaceholderText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  pdfPlaceholderSubtext: {
+    fontSize: 14,
+    color: '#999999',
+    textAlign: 'center',
   },
 });
 

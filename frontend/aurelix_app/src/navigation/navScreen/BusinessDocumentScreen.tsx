@@ -24,7 +24,6 @@ interface Document {
 }
 
 const BusinessDocumentsScreen = ({ navigation }) => {
-  // State for documents - in a real app, this would be fetched from an API
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import GradientText from '../../components/GradientText';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ChevronLeft } from 'lucide-react-native';
 
 // Define user type
 type UserType = 'entrepreneur' | 'investor';
@@ -422,11 +423,8 @@ const NotificationsScreen = ({ navigation, route }) => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#333" />
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <ChevronLeft size={24} color="#171725" />
         </TouchableOpacity>
         
         <Text style={styles.headerTitle}>Notifications</Text>

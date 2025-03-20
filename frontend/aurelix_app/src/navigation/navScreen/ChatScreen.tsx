@@ -1,5 +1,4 @@
-import type React from "react"
-import { useState, useCallback } from "react"
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,159 +11,139 @@ import {
   ActivityIndicator,
   RefreshControl,
   TextInput,
-} from "react-native"
-import { ChevronLeft, Search } from "lucide-react-native"
-import type { StackNavigationProp } from "@react-navigation/stack"
-import { useFocusEffect } from "@react-navigation/native"
-
-// Import the API and types from separate file
-import { MessagesAPI, type Conversation } from "./mockup/api_message-api"
+} from "react-native";
+import { ChevronLeft, Search } from "lucide-react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import messageService, { Conversation } from "./mockup/api_messages";
 import { formatTime } from "./util/formatters"
 
-type RecentMessagesScreenNavigationProp = StackNavigationProp<any, "RecentMessages">
-
-interface Props {
-  navigation: RecentMessagesScreenNavigationProp
-  route: {
-    params?: {
-      userId?: string
-    }
-  }
-}
-
-const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
+const RecentMessagesScreen = ({ navigation, route }) => {
   // State management
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
-  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false)
-  const [hasMoreConversations, setHasMoreConversations] = useState<boolean>(true)
-  const [page, setPage] = useState<number>(1)
-  const [searchQuery, setSearchQuery] = useState<string>("")
-  const [isSearching, setIsSearching] = useState<boolean>(false)
-  const [searchResults, setSearchResults] = useState<Conversation[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [hasMoreConversations, setHasMoreConversations] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [searchResults, setSearchResults] = useState<Conversation[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Get current user ID from route params or use default
-  const userId = route.params?.userId || "currentUser"
+  const userId = route.params?.userId || "currentUser";
 
   // Fetch conversations when component mounts or when user navigates back to this screen
   useFocusEffect(
     useCallback(() => {
-      fetchConversations()
+      fetchConversations();
 
       // Clean up function
       return () => {
         // Any cleanup needed when screen loses focus
-      }
+      };
     }, []),
-  )
+  );
 
   // Fetch conversations from API
   const fetchConversations = async (refresh = false) => {
     try {
-      setError(null)
+      setError(null);
 
       if (refresh) {
-        setIsRefreshing(true)
-        setPage(1)
+        setIsRefreshing(true);
+        setPage(1);
       } else if (!isLoading && !refresh) {
-        setIsLoadingMore(true)
+        setIsLoadingMore(true);
       }
 
-      const currentPage = refresh ? 1 : page
-      const { conversations: newConversations, hasMore } = await MessagesAPI.getRecentConversations(userId, currentPage)
+      const currentPage = refresh ? 1 : page;
+      const { conversations: newConversations, hasMore } = await messageService.getRecentConversations(userId, currentPage);
 
       if (refresh || currentPage === 1) {
-        setConversations(newConversations)
+        setConversations(newConversations);
       } else {
-        setConversations((prevConversations) => [...prevConversations, ...newConversations])
+        setConversations((prevConversations) => [...prevConversations, ...newConversations]);
       }
 
-      setHasMoreConversations(hasMore)
+      setHasMoreConversations(hasMore);
 
       if (!refresh && currentPage === 1) {
-        setIsLoading(false)
+        setIsLoading(false);
       }
 
       if (hasMore && !refresh) {
-        setPage(currentPage + 1)
+        setPage(currentPage + 1);
       }
-    } catch (error) {
-      console.error("Error fetching conversations:", error)
-      setError("Failed to load conversations. Please try again.")
+    } catch (err) {
+      console.error("Error fetching conversations:", err);
+      setError("Failed to load conversations. Please try again.");
     } finally {
-      setIsRefreshing(false)
-      setIsLoadingMore(false)
-      if (currentPage === 1) {
-        setIsLoading(false)
+      setIsRefreshing(false);
+      setIsLoadingMore(false);
+      if (page === 1) {
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   // Handle pull-to-refresh
   const handleRefresh = () => {
-    fetchConversations(true)
-  }
+    fetchConversations(true);
+  };
 
   // Handle loading more conversations when reaching end of list
   const handleLoadMore = () => {
     if (!isLoadingMore && hasMoreConversations && !isSearching) {
-      fetchConversations()
+      fetchConversations();
     }
-  }
+  };
 
-  // Handle conversation item press
   const handleConversationPress = async (conversation: Conversation) => {
     try {
-      // If there are unread messages, mark as read
       if (conversation.unreadCount > 0) {
-        await MessagesAPI.markConversationAsRead(conversation.id)
+        await messageService.markConversationAsRead(conversation.id);
 
-        // Update local state to reflect read status
         setConversations((prevConversations) =>
           prevConversations.map((conv) =>
             conv.id === conversation.id
               ? { ...conv, unreadCount: 0, lastMessage: { ...conv.lastMessage, read: true } }
               : conv,
           ),
-        )
+        );
       }
-
-      // Navigate to conversation detail screen
+      
+      // Navigate to conversation screen with required parameters
       navigation.navigate("Conversation", {
         conversationId: conversation.id,
-        participantName: conversation.participantName,
-        participantAvatar: conversation.participantAvatar,
-      })
+        participantId: conversation.participantId
+      });
     } catch (error) {
-      console.error("Error handling conversation press:", error)
-      // Show error toast or notification
+      console.error("Error handling conversation press:", error);
     }
-  }
+  };
 
-  // Handle search query changes
   const handleSearchChange = (text: string) => {
-    setSearchQuery(text)
+    setSearchQuery(text);
 
     if (text.length > 0) {
-      setIsSearching(true)
-      searchConversations(text)
+      setIsSearching(true);
+      searchConversations(text);
     } else {
-      setIsSearching(false)
-      setSearchResults([])
+      setIsSearching(false);
+      setSearchResults([]);
     }
-  }
+  };
 
   // Search conversations
   const searchConversations = async (query: string) => {
     try {
-      const results = await MessagesAPI.searchConversations(query, userId)
-      setSearchResults(results)
+      const results = await messageService.searchConversations(query, userId);
+      setSearchResults(results);
     } catch (error) {
-      console.error("Error searching conversations:", error)
+      console.error("Error searching conversations:", error);
     }
-  }
+  };
 
   // Render conversation item
   const renderConversationItem = ({ item }: { item: Conversation }) => (
@@ -196,22 +175,20 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
       </View>
     </TouchableOpacity>
-  )
+  );
 
-  // Render loading indicator
   const renderFooter = () => {
-    if (!isLoadingMore) return null
+    if (!isLoadingMore) return null;
 
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color="#00a86b" />
       </View>
-    )
-  }
+    );
+  };
 
-  // Render empty state
   const renderEmptyState = () => {
-    if (isLoading) return null
+    if (isLoading) return null;
 
     return (
       <View style={styles.emptyState}>
@@ -227,12 +204,11 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
         )}
       </View>
-    )
-  }
+    );
+  };
 
-  // Render error state
   const renderErrorState = () => {
-    if (!error) return null
+    if (!error) return null;
 
     return (
       <View style={styles.errorState}>
@@ -241,8 +217,8 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
-    )
-  }
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -250,22 +226,20 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
 
       {/* Header */}
       <View style={styles.header}>
-        
         <View style={styles.headerTitleContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <ChevronLeft size={24} color="#171725" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Recents</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <ChevronLeft size={24} color="#171725" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Recents</Text>
         </View>
-        
 
         <TouchableOpacity
           style={styles.searchButton}
           onPress={() => {
-            setIsSearching(!isSearching)
+            setIsSearching(!isSearching);
             if (isSearching) {
-              setSearchQuery("")
-              setSearchResults([])
+              setSearchQuery("");
+              setSearchResults([]);
             }
           }}
         >
@@ -311,8 +285,8 @@ const RecentMessagesScreen: React.FC<Props> = ({ navigation, route }) => {
         />
       )}
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -322,7 +296,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerTitleContainer:{
+  headerTitleContainer: {
     flexDirection: "row",
     alignItems: 'center',
     gap: 10,
@@ -382,7 +356,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 60,
     height: 60,
-    borderRadius: 25,
+    borderRadius: 30,
   },
   conversationContent: {
     flex: 1,
@@ -482,7 +456,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#ffffff",
   }
-})
+});
 
-export default RecentMessagesScreen
-
+export default RecentMessagesScreen;
