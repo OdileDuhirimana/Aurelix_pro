@@ -75,38 +75,40 @@ const VerificationScreen: React.FC = () => {
   }, [otp]);
 
   // Verify OTP
-  const handleVerify = async () => {
-    if (otp.some(digit => digit === "")) {
-      setErrorMessage("Please fill all OTP fields");
-      return;
-    }
   
-    setIsLoading(true);
-    setErrorMessage("");
-  
-    try {
-      // Simulate backend verification
-      await new Promise<void>((resolve, reject) => {
-        setTimeout(() => {
-          const correctOtp = ["1", "2", "3", "4"];
-          otp.join("") === correctOtp.join("") 
-            ? resolve() 
-            : reject(new Error("Invalid OTP, please try again!"));
-        }, 2000);
-      });
-      
-      // Navigate based on fromScreen
-      const destination = fromScreen === "ForgotPassword" 
-        ? "NewPassword" 
-        : "VerifyEligibility";
-      
-      navigation.navigate(destination as never);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred");
-    } finally {
-      setIsLoading(false);
+const handleVerify = async (otp: string[], setErrorMessage: (message: string) => void, setIsLoading: (loading: boolean) => void, fromScreen: string | undefined, navigation: any) => {
+  if (otp.some(digit => digit === "")) {
+    setErrorMessage("Please fill all OTP fields");
+    return;
+  }
+
+  setIsLoading(true);
+  setErrorMessage("");
+
+  try {
+    // Simulate backend verification
+    await new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        const correctOtp = ["1", "2", "3", "4"];
+        otp.join("") === correctOtp.join("") 
+          ? resolve() 
+          : reject(new Error("Invalid OTP, please try again!"));
+      }, 2000);
+    });
+    
+    if (fromScreen == "Signup") {
+      navigation.navigate("VerifyEligibility" as never);
+    } else if (fromScreen == "ForgotPassword") {
+      navigation.navigate("NewPassword" as never);
+    } else {
+      navigation.navigate("NewPassword" as never);
     }
-  };
+  } catch (error) {
+    setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred");
+  } finally {
+    setIsLoading(false);
+  }
+};
   
   return (
     <ScrollView style={styles.container}>
@@ -147,10 +149,10 @@ const VerificationScreen: React.FC = () => {
         {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
         <TouchableOpacity
-          style={styles.verifyButton}
-          onPress={handleVerify}
-          disabled={isLoading}
-        >
+  style={styles.verifyButton}
+  onPress={() => handleVerify(otp, setErrorMessage, setIsLoading, fromScreen, navigation)}
+  disabled={isLoading}
+>
           {isLoading ? (
             <ActivityIndicator size="small" color="#fce986" />
           ) : (

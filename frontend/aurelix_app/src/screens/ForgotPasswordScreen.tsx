@@ -40,7 +40,7 @@ const ForgotPasswordScreen: React.FC = () => {
     try {
       const response = await simulateApiCall(email); // Simulated API call
       alert(response); // Handle success (for now, show an alert)
-      navigation.navigate("Verification" as never);  // Navigate on success
+      navigation.navigate("Verification", { fromScreen: "ForgotPassword" });  // Navigate on success
     } catch (err: any) {
       setError(err);  // Set error state
     } finally {

@@ -14,10 +14,10 @@ import {
   ActivityIndicator,
   Animated
 } from 'react-native';
-import { ChevronLeft, Search, Paperclip, Mic, Send } from 'lucide-react-native';
+import { ChevronLeft, Search, Paperclip, Mic, Send, UserRound, Building } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import messageService, { Message, User, WebSocketService } from "./mockup/api_messages"
-import { formatMessageTime} from "./util/formatters"
+import messageService, { Message, User, WebSocketService, getCurrentUserType } from "./mockup/api_messages";
+import { formatMessageTime } from "./util/formatters";
 
 const ConversationScreen = ({ navigation, route }) => {
   // State management
@@ -31,6 +31,7 @@ const ConversationScreen = ({ navigation, route }) => {
   const [isParticipantTyping, setIsParticipantTyping] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
+  const [userType, setUserType] = useState<'entrepreneur' | 'investor'>(getCurrentUserType());
   
   // Refs
   const scrollViewRef = useRef<ScrollView>(null);
@@ -376,6 +377,19 @@ const ConversationScreen = ({ navigation, route }) => {
       </View>
     );
   };
+
+  // Determine profile screen based on participant type
+  const navigateToProfile = () => {
+    if (!participant) return;
+
+    const isParticipantBusiness = participant.id.startsWith('business');
+    
+    if (isParticipantBusiness) {
+      navigation.navigate('BusinessProfile', { businessId: participantId });
+    } else {
+      navigation.navigate('InvestorProfile', { investorId: participantId });
+    }
+  };
   
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -398,16 +412,25 @@ const ConversationScreen = ({ navigation, route }) => {
             {participant && (
               <TouchableOpacity 
                 style={styles.profileContainer}
-                onPress={() => {
-                  // Navigate to participant profile
-                  navigation.navigate('InvestorProfile', { investorId: participantId });
-                }}
+                onPress={navigateToProfile}
               >
                 <Image 
                   source={{ uri: participant.avatar }} 
                   style={styles.profileImage}
                 />
-                <Text style={styles.profileName}>{participant.name}</Text>
+                <View style={styles.profileInfo}>
+                  <Text style={styles.profileName}>{participant.name}</Text>
+                  {participant.title && (
+                    <Text style={styles.profileTitle}>
+                      {participant.title}
+                    </Text>
+                  )}
+                </View>
+                {participant.id.startsWith('business') ? (
+                  <Building size={16} color="#00a86b" style={styles.typeIcon} />
+                ) : (
+                  <UserRound size={16} color="#00a86b" style={styles.typeIcon} />
+                )}
               </TouchableOpacity>
             )}
           </View>
@@ -453,6 +476,9 @@ const ConversationScreen = ({ navigation, route }) => {
             {/* Messages grouped by date */}
             {groupMessagesByDate(messages).map(group => (
               <React.Fragment key={group.date}>
+                <View style={styles.dateHeader}>
+                  <Text style={styles.dateHeaderText}>{group.date}</Text>
+                </View>
                 {group.messages.map(renderMessage)}
               </React.Fragment>
             ))}
@@ -530,6 +556,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     gap: 10,
+    flex: 1,
   },
   backButton: {
     width: 40,
@@ -541,16 +568,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flex: 1,
   },
   profileImage: {
     width: 40,
     height: 40,
     borderRadius: 20,
   },
+  profileInfo: {
+    flex: 1,
+  },
   profileName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#171725',
+  },
+  profileTitle: {
+    fontSize: 12,
+    color: '#737373',
+  },
+  typeIcon: {
+    marginLeft: 4,
   },
   searchButton: {
     width: 30,
@@ -586,6 +624,18 @@ const styles = StyleSheet.create({
   messagesContent: {
     padding: 16,
     paddingBottom: 24,
+  },
+  dateHeader: {
+    alignItems: 'center',
+    marginVertical: 12,
+  },
+  dateHeaderText: {
+    fontSize: 12,
+    color: '#737373',
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   loadMoreButton: {
     alignSelf: 'center',

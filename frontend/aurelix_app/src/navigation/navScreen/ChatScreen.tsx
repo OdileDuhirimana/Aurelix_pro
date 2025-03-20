@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,11 +11,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   TextInput,
+  Switch,
 } from "react-native";
-import { ChevronLeft, Search } from "lucide-react-native";
+import { ChevronLeft, Search, UserRound, Building } from "lucide-react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import messageService, { Conversation } from "./mockup/api_messages";
-import { formatTime } from "./util/formatters"
+import messageService, { Conversation, getCurrentUserType, setCurrentUserType } from "./mockup/api_messages";
+import { formatTime } from "./util/formatters";
 
 const RecentMessagesScreen = ({ navigation, route }) => {
   // State management
@@ -29,6 +30,7 @@ const RecentMessagesScreen = ({ navigation, route }) => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchResults, setSearchResults] = useState<Conversation[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [userType, setUserType] = useState<'entrepreneur' | 'investor'>(getCurrentUserType());
 
   // Get current user ID from route params or use default
   const userId = route.params?.userId || "currentUser";
@@ -42,7 +44,7 @@ const RecentMessagesScreen = ({ navigation, route }) => {
       return () => {
         // Any cleanup needed when screen loses focus
       };
-    }, []),
+    }, [userType]), // Re-fetch when user type changes
   );
 
   // Fetch conversations from API
@@ -145,6 +147,16 @@ const RecentMessagesScreen = ({ navigation, route }) => {
     }
   };
 
+  // Toggle user type
+  const toggleUserType = async () => {
+    const newType = userType === 'entrepreneur' ? 'investor' : 'entrepreneur';
+    setUserType(newType);
+    setCurrentUserType(newType);
+    setIsLoading(true);
+    setPage(1);
+    // Conversations will be re-fetched due to useFocusEffect dependency on userType
+  };
+
   // Render conversation item
   const renderConversationItem = ({ item }: { item: Conversation }) => (
     <TouchableOpacity style={styles.conversationItem} onPress={() => handleConversationPress(item)}>
@@ -233,18 +245,45 @@ const RecentMessagesScreen = ({ navigation, route }) => {
           <Text style={styles.headerTitle}>Recents</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.searchButton}
-          onPress={() => {
-            setIsSearching(!isSearching);
-            if (isSearching) {
-              setSearchQuery("");
-              setSearchResults([]);
-            }
-          }}
-        >
-          <Search size={24} color="#171725" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          {/* User Type Toggle */}
+          <View style={styles.userTypeToggle}>
+            <UserRound size={16} color={userType === 'entrepreneur' ? "#00a86b" : "#999"} />
+            <Switch
+              value={userType === 'investor'}
+              onValueChange={toggleUserType}
+              trackColor={{ false: '#e0e0e0', true: '#e0e0e0' }}
+              thumbColor={userType === 'investor' ? '#00a86b' : '#00a86b'}
+              style={{ marginHorizontal: 4 }}
+            />
+            <Building size={16} color={userType === 'investor' ? "#00a86b" : "#999"} />
+          </View>
+
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={() => {
+              setIsSearching(!isSearching);
+              if (isSearching) {
+                setSearchQuery("");
+                setSearchResults([]);
+              }
+            }}
+          >
+            <Search size={24} color="#171725" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* User Type Indicator */}
+      <View style={styles.userTypeIndicator}>
+        <Text style={styles.userTypeText}>
+          Viewing as: {userType === 'entrepreneur' ? 'Entrepreneur' : 'Investor'}
+        </Text>
+        <Text style={styles.userTypeDescription}>
+          {userType === 'entrepreneur' 
+            ? 'You are seeing messages from investors' 
+            : 'You are seeing messages from businesses'}
+        </Text>
       </View>
 
       {/* Search Input */}
@@ -310,6 +349,39 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 8,
     gap: 10,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  userTypeToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  userTypeIndicator: {
+    backgroundColor: "#f0f9f4",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#00a86b",
+  },
+  userTypeText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#00a86b",
+  },
+  userTypeDescription: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 2,
   },
   backButton: {
     width: 40,

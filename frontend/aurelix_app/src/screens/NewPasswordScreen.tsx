@@ -67,6 +67,7 @@ const NewPasswordScreen = () => {
       // Simulating a backend call
       const response = await simulateBackendCall(state.newPassword);
       if (response.success) {
+        // Navigate to Login screen after successful password reset
         navigation.navigate("Login");
       } else {
         dispatch({ type: "SET_ERROR", payload: response.error });
@@ -120,10 +121,6 @@ const NewPasswordScreen = () => {
         />
 
         {state.error ? <Text style={styles.errorText}>{state.error}</Text> : null}
-
-        <TouchableOpacity style={styles.forgotPassword} onPress={() => navigation.navigate("ForgotPassword")}>
-          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-        </TouchableOpacity>
 
         <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm} disabled={state.loading}>
           {state.loading ? (
@@ -181,6 +178,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 24,
+    marginTop: 60,
   },
   confirmButtonText: {
     color: "#FFEB3B",

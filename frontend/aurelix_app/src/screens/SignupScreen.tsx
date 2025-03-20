@@ -79,7 +79,7 @@ const SignupScreen: React.FC = () => {
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
       // On success, navigate to verification page
-      navigation.navigate("Verification" as never)
+      navigation.navigate("Verification", {fromScreen: "Signup"})
     } catch (error) {
       dispatch({ type: actionTypes.SET_ERROR, value: "Something went wrong. Please try again." })
     } finally {
